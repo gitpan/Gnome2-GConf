@@ -1,0 +1,23 @@
+AUTHOR
+ChangeLog
+examples/basic-gconf-app.pl
+examples/complex-gconf-app.pl
+examples/simple-controller.pl
+examples/simple-view.pl
+GConf.pm
+gconfperl.h
+genmaps.pl
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+maps
+README
+t/00.GConf.t
+TODO
+xs/GConf2.xs
+xs/GConfChangeSet.xs
+xs/GConfClient.xs
+xs/GConfEntry.xs
+xs/GConfSchema.xs
+xs/GConfValue.xs
+META.yml                                 Module meta-data (added by MakeMaker)

@@ -1,0 +1,6 @@
+* error handling - GConf has two ways of handling errors: the first, catch
+  every error, the second leave the unhandled errors up to the programmer;
+  unhandled errors are triggered by not passing a GError to the C functions
+  and listening to the "unreturned_error" signal; right now, we're using the
+  default error handler set inside GConf, leaving to the programmer the
+  ability to catch every error that occurs via the "error" signal.

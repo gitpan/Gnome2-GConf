@@ -1,0 +1,115 @@
+2003/11/21 12:27 (+0100) ebassi
+
+	* Makefile.PL, README: change minimum required versions for Glib and
+	  Gtk modules (1.012), since it's release time.
+
+2003/11/18 23:20 (+0100) ebassi
+
+	* README: changed version and minimum required version of Glib and
+	  Gtk modules.
+	
+	* Makefile.PL: new required versions for Glib and Gtk modules (1.011).
+
+2003/11/18 18:37 (+0100) ebassi
+	
+	* GConf.pm: bumped to version 0.42.
+
+	* examples/comples-gconf-app.pl: better code and comments.
+	
+	* GConf.pm: added "ERROR HANDLING" section inside the documentation.
+
+	* Makefile.PL: new required versions for Glib and Gtk modules (1.02);
+	  needed for the marshalling helper macros.
+	
+	* xs/GConfClient.xs: make use of the new marshalling helper macros
+	  inside the custom marshallers for "error" and "unreturned_error"
+	  signals (muppet).
+	
+	* xs/*.xs: less criptic croak messages.
+	
+	* xs/*.xs: remove header dependency on gnome2perl.h - gconfperl.h is
+ 	  enough (muppet).
+	
+	* gconfperl.h: removed header dependency on gnome2perl.h - using
+	  gperl.h instead (muppet).
+
+2003/11/18 00:07 (+0100) ebassi
+
+	* examples/complex-gconf-app.pl: added this example application that
+	  uses GConfChangeSets and GConfSchemas.
+
+2003/11/17 21:12 (+0100) ebassi
+	
+	* debian/*, MANIFEST: removed debian packaging info before committing
+	  the package.
+	
+	* *: committed to CVS.
+
+2003/11/17 20:53 (+0100) ebassi
+		
+	* xs/GConfChangeSet.xs: implemented GConfChangeSet as an hashref
+	  with GConf keys as hash keys and hashrefs in place of GConfValues;
+	  see documentation for more details.
+
+	* xs/GConfClient.xs: implemented
+		gconf_client_commit_change_set
+		gconf_client_reverse_change_set
+		gconf_client_change_set_from_current
+	
+	* GConf.pm: updated the documentation and bumped to version 0.41
+
+	* TODO: updated to do list.
+
+2003/10/17 13:25 (+0200) ebassi
+
+	* xs/GConfClient.xs: created custom marshaller for "error" and
+	  "unreturned_error" signals; these signal pass a GError in C, and
+	  since in gtk2-perl that's not a GType, we swap it inside the Perl
+	  marshaller with the string which contains the error message.
+
+2003/10/12 13:26 (+0200) ebassi
+
+	* xs/GConfSchema.xs: implemented GConfSchema container as GConfEntry
+	  and GConfValue - using an hashref.
+
+	* xs/GConfClient.xs: implemented
+		gconf_client_get_schema
+		gconf_client_set_schema
+	* debian/*: debianized package.
+	
+	* examples/basic-gconf-app.pl: placed some comments.
+
+2003/09/21 23:45 (+0200) ebassi
+
+	* xs/GConfClient.xs: implemented gconf_client_all_entries (patch by
+	  Luis Lopez Lopez).
+
+2003/09/19 12:44 (+0200) ebassi
+
+	* xs/GConfEntry.xs: added the reverse converter for GConfEntry (it
+	  creates a GConfEntry from an hashref).
+	
+	* xs/GConfClient.xs: implemented
+		gconf_client_all_dirs
+		gconf_client_get_entry
+		gconf_client_get_without_default
+		gconf_client_get_default_from_schema
+
+2003/09/19 12:17 (+0200) ebassi
+	
+	* examples/basic-gconf-app,pl: connected the 'focus_out_event' signal.
+	
+	* Makefile.PL: changed minimum required version for GConf to 1.2.0, in
+	  order to cover GNOME 2.0 (thanks to muppet); fixed a cut&paste typo.
+	
+	* xs/GConfValue.xs: croak if an invalid hashref is passed to
+	  SvGConfValue, instead of silently discarding it.
+	
+2003/09/19 01:56 (+0200) ebassi
+	
+	* examples/simple-controller.pl, examples/simple-view.pl: added these
+	 two examples, ported directly from GConf sources.
+
+2003/09/18 17:18 (+0200) ebassi
+
+	* *: initial ChangeLog entry.
