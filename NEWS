@@ -1,0 +1,39 @@
+Overview of changes since 0.94
+==============================
+
+* New test suite for GConfClient. [Emmanuele]
+* Adapted version information methods to the current policy. [Toersten]
+* Updated documentation. [Emmanuele]
+* Require Glib 1.040. [Emmanuele]
+
+Overview of changes since 0.93
+==============================
+
+* Fixed a stupid bug in GConfValue [Emmanuele]
+
+Overview of changes since 0.92
+
+* Split-up API documentation for GConfValue, GConfEntry,
+  GConfChangeSet and GConfSchema. [Emmanuele]
+* API frozen [Emmanuele]
+* Require Glib 1.038 (for API freeze state) [Emmanuele]
+
+Overview of changes since 0.91
+==============================
+
+* Require Glib 1.037 [Emmanuele]
+* Use the new Glib::Error exception handling. [Emmanuele]
+* Updated documentation. [muppet]
+
+Overview of changes since 0.46
+==============================
+
+* Require ExtUtils::PkgConfig 1.03
+* Require Glib 1.020
+* Remove runtime dependency on Gtk2; Gtk2's Gtk2::CodeGen is a
+  build-only requirement.  [muppet]
+* Build system updates.  [muppet]
+* Updated documentation.  [Emmanuele]
+* Added some test methods that apps should not use.  [Emmanuele]
+
+[started NEWS]

@@ -1,16 +1,23 @@
 AUTHOR
 ChangeLog
+copyright.pod
+doctypes
 examples/basic-gconf-app.pl
 examples/complex-gconf-app.pl
+examples/error.pl
 examples/simple-controller.pl
 examples/simple-view.pl
 GConf.pm
+gconf.typemap
 gconfperl.h
 genmaps.pl
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 maps
+META.yml			Module meta-data (added by MakeMaker)
+NEWS
+perl-Gnome2-GConf.spec.in
 README
 t/00.GConf.t
 TODO
@@ -20,4 +27,3 @@ xs/GConfClient.xs
 xs/GConfEntry.xs
 xs/GConfSchema.xs
 xs/GConfValue.xs
-META.yml                                 Module meta-data (added by MakeMaker)

@@ -31,7 +31,6 @@ newSVGConfEntry (GConfEntry * e)
 	SV * r;
 	const gchar * key;
 	GConfValue * value;
-	GConfValueType type;
 	
 	if (! e)
 		return newSVsv(&PL_sv_undef);
@@ -66,18 +65,18 @@ SvGConfEntry (SV * data)
 	GConfEntry * e;
 
 	if ((!data) || (!SvOK(data)) || (!SvRV(data)) || (SvTYPE(SvRV(data)) != SVt_PVHV))
-		croak ("value must be an hashref");
+		croak ("SvGConfEntry: value must be an hashref");
 
 	h = (HV *) SvRV (data);
 	
 	/* we require the 'value' key */
 	if (! ((s = hv_fetch (h, "value", 5, 0)) && SvOK (*s)))
-		croak ("'value' key needed");
+		croak ("SvGConfEntry: 'value' key needed");
 	
 	v = SvGConfValue (*s);
 	
 	if (! ((s = hv_fetch (h, "key", 3, 0)) && SvOK (*s)))
-		croak ("'key' key needed");
+		croak ("SvGConfEntry: 'key' key needed");
 	e = gconf_entry_new (SvGChar (*s), v);
 	
 	gconf_value_free (v);
@@ -88,3 +87,63 @@ SvGConfEntry (SV * data)
 MODULE = Gnome2::GConf::Entry	PACKAGE = Gnome2::GConf::Entry	PREFIX = gconf_entry_
 
 
+=for object Gnome2::GConf::Entry Container Objects for key/value pairs
+=cut
+
+=for position SYNOPSIS
+
+=head1 SYNOPSIS
+
+  $client = Gnome2::GConf::Client->get_default;
+  $client->notify_add($config_key, sub {
+      my ($client, $cnxn_id, $entry) = @_;
+      return unless $entry;
+      
+      unless ($entry->{value})
+      {
+        $label->set_text('');
+      }
+      elsif ($entry->{value}->{type} eq 'string')
+      {
+        $label->set_text($entry->{value}->{value});
+      }
+      else
+      {
+        $label->set_text('!type error!');
+      }
+    });
+
+=cut
+
+=for position DESCRIPTION
+
+=head1 DESCRIPTION
+
+In C, C<GConfEntry> is a opaque container for the key string and for the
+C<GConfValue> bound to that key.  In perl, it's an hashref consisting of
+these keys:
+
+=over
+
+=item B<key>
+
+The key that is being monitored.
+
+=item B<value>
+
+An hashref, representing a C<GConfValue> (see L<Gnome2::GConf::Value>), which
+contains the type and the value of the key; it may be undef if the key has been
+unset.  Every method of the C API is replaced by standard perl functions that
+operate on hashrefs.
+
+=back
+
+=cut
+
+=for see_also
+
+=head1 SEE ALSO
+
+L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Value>(3pm).
+
+=cut

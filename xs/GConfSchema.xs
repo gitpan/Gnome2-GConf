@@ -33,7 +33,6 @@ newSVGConfSchema (GConfSchema * s)
 	HV * h;
 	SV * r;
 	GConfValueType t;
-	GConfValue * v;
 
 	if (! s)
 		return newSVsv(&PL_sv_undef);
@@ -91,7 +90,7 @@ SvGConfSchema (SV * data)
 	int n;
 
 	if ((!data) || (!SvOK(data)) || (!SvRV(data)) || (SvTYPE(SvRV(data)) != SVt_PVHV))
-		croak ("value must be an hashref");
+		croak ("SvGConfSchema: value must be an hashref");
 
 	h = (HV *) SvRV (data);
 	
@@ -105,7 +104,8 @@ SvGConfSchema (SV * data)
 		else {
 			/* otherwise, try to convert it from the enum */
 			if (!gperl_try_convert_enum (GCONF_TYPE_VALUE_TYPE, *s, &n))
-				croak ("'type' should be either a GConfValueType or an integer");
+				croak ("SvGConfSchema: 'type' should be either "
+				       "a GConfValueType or an integer");
 			t = (GConfValueType) n;
 		}
 
@@ -138,3 +138,75 @@ SvGConfSchema (SV * data)
 MODULE = Gnome2::GConf::Schema	PACKAGE = Gnome2::GConf::Schema	PREFIX = gconf_schema
 
 
+=for object Gnome2::GConf::Schema Schema Objects for key description
+=cut
+
+=for position SYNOPSIS
+
+=head1 SYNOPSIS
+
+  $client->set_schema($key, {
+	owner		=> 'some_program',
+	short_desc	=> 'Some key.',
+	long_desc	=> 'A key that does something to some_program.',
+	locale		=> 'C',
+	type		=> 'int',
+	default_value => { type => 'int', value => 42 }
+  });
+  $description{'short'} = $client->get_schema($key)->{short_desc};
+
+=cut
+
+=for position DESCRIPTION
+
+=head1 DESCRIPTION
+
+In C, C<GConfSchema> is an opaque type for a "schema", that is a collection of
+useful informations about a key/value pair. It may contain a description of
+the key, a default value, the program which owns the key, etc.
+
+In perl, it is represented using an hashref containing any of these keys:
+
+=over 4
+
+=item B<type>
+
+The type of the value the key points to.  It's similar to the corresponding
+'type' key of C<GConfValue>, but it explicitly tags lists and pairs using the
+'list' and 'pair' types (the 'type' key is just an indication of what should
+be expected inside the C<default_value> field).
+
+=item B<default_value>
+
+The default value of the key.  In C, this should be a C<GConfValue>, so, in
+perl, it becomes an hashref (see L<Gnome2::GConf::Value>)
+
+=item B<short_desc>
+
+A string containing a short description (a phrase, no more) of the key.
+
+=item B<long_desc>
+
+A string containing a longer description (a paragraph or more) of the key.
+
+=item B<owner>
+
+A string containing the name of the program which uses ('owns') the key to
+which the schema is bound.
+
+=item B<locale>
+
+The locale for the three strings above (above strings are UTF-8, and the
+locale is needed for translations purposes).
+
+=back
+
+=cut
+
+=for see_also
+
+=head1 SEE ALSO
+
+L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Value>(3pm).
+
+=cut

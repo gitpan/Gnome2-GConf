@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2003 by Emmanuele Bassi (see the file AUTHORS)
+# Copyright (c) 2003, 2004 by Emmanuele Bassi (see the file AUTHORS)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -22,8 +22,7 @@ use 5.008;
 use strict;
 use warnings;
 
-use Gtk2;
-use Gnome2;
+use Glib;
 
 require Exporter;
 
@@ -33,7 +32,7 @@ our @ISA = qw(Exporter);
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 
-# This allows declaration	use Gnome2::Print ':all';
+# This allows declaration	use Gnome2::GConf ':all';
 # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
 # will save memory.
 our %EXPORT_TAGS = ( 'all' => [ qw(
@@ -46,14 +45,62 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.42';
+our $VERSION = '1.000';
 
 sub dl_load_flags { 0x01 }
 
 require XSLoader;
 XSLoader::load('Gnome2::GConf', $VERSION);
 
-# Preloaded methods go here.
+
+package Gnome2::GConf::Client;
+use Carp;
+
+sub get_list
+{
+	my $self = shift;	# the object
+	my $key  = shift;
+
+	my $val = $self->get($key);
+	return $val->{value};
+}
+
+sub get_pair
+{
+	my $self = shift;	# the object
+	my $key  = shift;
+
+	my $val = $self->get($key);
+	carp "$key is not bound to a pair" if not $val->{type} eq 'pair';
+
+	return ($val->{car}, $val->{cdr});
+}
+
+sub set_list
+{
+	my $self = shift;	# the object
+	my $key  = shift;
+	my $type = shift;
+	my $list = shift;
+
+	$self->set($key, { type => $type, value => $list });
+}
+
+sub set_pair
+{
+	my $self = shift;	# the object
+	my $key  = shift;
+	my $car  = shift;
+	my $cdr  = shift;
+
+	$self->set($key, {
+			type	=> 'pair',
+			car		=> $car,
+			cdr		=> $cdr,
+		});
+}
+
+package Gnome2::GConf;
 
 1;
 __END__
@@ -100,8 +147,8 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
 
 =head1 ABSTRACT
 
-  Perl bindings to the 2.2 series of the GConf configuration engine
-  libraries, for use with gtk2-perl.
+Perl bindings to the 2.2 series of the GConf configuration engine
+libraries, for use with gtk2-perl.
 
 =head1 DESCRIPTION
 
@@ -128,122 +175,19 @@ to add syntactic sugar and to remove the need for accessor methods.
 
 =item GConfEntry
 
-In C, C<GConfEntry> is a opaque container for the key string and for the
-C<GConfValue> bound to that key.  In perl, it's an hashref consisting of
-these keys:
-
-=over
-
-=item B<key>
-
-The key that is being monitored.
-
-=item B<value>
-
-An hashref, representing a C<GConfValue>, which contains the type and the
-value of the key; it may be undef if the key has been unset.  See C<GConfValue>
-below.
-
-=back
+See L<Gnome2::GConf::Entry>
 
 =item GConfValue
 
-In C, C<GConfValue> is a dynamic type similar to C<GValue>; it contains the
-value bound to a key, and its type.  In perl, it's an hashref containing these
-keys:
-
-=over
-
-=item B<type>
-
-The type of the data.  Fundamental types are 'string', 'int', 'float' and
-'bool'.  Lists are handled by passing an arrayref as the payload of the C<value>
-key:
-	
-	$client->set($key, { type => 'string', value => 'some string' });
-	$client->set($key, { type => 'float',  value => 0.5           });
-	$client->set($key, { type => 'bool',   value => FALSE         });
-	$client->set($key, { type => 'int',    value => [0..15]       });
-	
-Pairs are handled by using the special type 'pair', and passing, in place
-of the C<value> key, the C<car> and the C<cdr> keys, each containing an hashref
-representing a GConfValue:
-
-	$client->set($key, {
-			type => 'pair',
-			car  => { type => 'string', value => 'some string' },
-			cdr  => { type => 'int',    value => 42            },
-		});
-
-This is needed since pairs might have different types; lists, instead, are of
-the same type.
-
-=item B<value>
-
-The payload, containing the value of type C<type>.  It is used only for
-fundamental types (scalars or lists).
-
-=item B<car>, B<cdr>
-
-Special keys, that must be used only when working with the 'pair' type.
-
-=back
+See L<Gnome2::GConf::Value>
 
 =item GConfChangeSet
 
-In C, C<GConfChangeSet> is an hash containing keys and C<GConfValue>s to be
-committed in a single pass (though not yet with an atomic operation).  Since
-perl has hashes as a built-in type, C<GConfChangeSet> is threated as an hash
-with the GConf keys as keys, and their relative C<GConfValue> as payload.
-
-	$cs = {
-		'/apps/someapp/some_int_key' => { type => 'int', value => 42 },
-		'/apps/someapp/some_string_key' => { type => 'string', value => 'hi' },
-	};
-
-	$reverse_cs = $client->reverse_change_set($cs);
-	$client->commit_change_set($cs, FALSE);
+See L<Gnome2::GConf::ChangeSet>
 
 =item GConfSchema
 
-In C, C<GConfSchema> is an opaque type for a "schema", that is a collection of
-useful informations about a key/value pair. It may contain a description of
-the key, a default value, the program which owns the key, etc.  In perl, it
-is represented using an hashref containing any of these keys:
-
-=over 4
-
-=item B<type>
-
-The type of the value the key points to.  It's similar to the corresponding
-'type' key of GConfValue, but it explicitly tags lists and pairs using the
-'list' and 'pair' types (the 'type' key is just an indication of what should
-be expected inside the C<default_value> field).
-
-=item B<default_value>
-
-The default value of the key.  In C, this should be a GConfValue, so, in perl,
-it becomes an hashref (see GConfValue above).
-
-=item B<short_desc>
-
-A string containing a short description (a phrase, no more) of the key.
-
-=item B<long_desc>
-
-A string containing a longer description (a paragraph or more) of the key.
-
-=item B<owner>
-
-A string containing the name of the program which uses ('owns') the key to
-which the schema is bound.
-
-=item B<locale>
-
-The locale for the three strings above (above strings are UTF-8, and the
-locale is needed for translations purposes).
-
-=back
+See L<Gnome2::GConf::Schema>
 
 =back
 
@@ -271,27 +215,38 @@ there's no C<GConfEntry> (see above), the C<entry> parameter is an hashref.
 =item GConfClient::set
 
 In C, these accessor methods return/use a C<GConfValue>.  In perl, they
-return/use an hashref representing that C<GConfValue>:
+return/use an hashref.  See L<Gnome2::GConf::Value>
 
-	$client->set($key, { type => 'int', value => 42 });
-	$data = $client->get($key)->{value};
+=item GConfClient::get_list
+
+=item GConfClient::set_list
+
+These accessor methods use a string for setting the type of the lists (lists
+may have values of only B<one> type), and an arrayref containing the values.
+
+=item GConfClient::get_pair
+
+=item GConfClient::set_pair
+
+These accessor methods use two hashref (representing C<GConfValue>s) for
+the C<car> and the C<cdr> parameters.
 
 =item GConfClient::get_schema
 
 =item GConfClient::set_schema
 
-Similarly to the get/set pair above, these two methods return/use an hashref
-representing a C<GConfSchema> (see above):
+Similarly to the get/set pair above, these two methods return/use an hashref.
+See L<Gnome2::GConf::Schema>.
 
-	$client->set_schema($key, {
-			owner		=> 'some_program',
-			short_desc	=> 'Some key.',
-			long_desc	=> 'A key that does something to some_program.',
-			locale		=> 'C',
-			type		=> 'int',
-			default_value => { type => 'int', value => 42 }
-		});
-	$description['short'] = $client->get_schema($key)->{short_desc};
+=item GConfClient::commit_change_set
+
+In C, this method return a boolean value (TRUE on success, FALSE on failure).
+On user request (using the boolean parameter C<remove_committed>), it also
+returns the C<GConfChangeSet>, pruned of the successfully committed keys.  In
+perl, this method returns a boolean value both in scalar context or if the user
+sets to FALSE the C<remove_committed> parameter; in array context or if the user
+requests the uncommitted keys, returns both the return value and the pruned
+C<GConfChangeSet>.
 
 =back
 
@@ -313,18 +268,22 @@ want to check using the "unreturned_error" signal.
 In perl, you don't have all these options, mainly because there's no GError
 type.  By default, every fallible method will croak on failure, which is The
 Right Thing To Do(R) when debugging; also, the "error" signal is emitted, so
-you might connect a callback to it.  If you want to catch the error, just wrap
-the method with eval, e.g.:
+you might connect a callback to it.  If you want to catch the error, you will
+have to use C<eval> and Glib::Error:
 	
-	eval { $s = $client->get_string($some_key); 1; };
-	if ($@)
+	use Glib;
+	eval {
+		$s = $client->get_string($some_key);
+		1;
+	};
+	if (Glib::Error::matches($@, 'Gnome2::GConf::Error', 'bad-key'))
 	{
-		# do domething with $@
+		# recover from a bad-key error.
 	}
 
 =head1 SEE ALSO
 
-perl(1), Glib(3pm), Gtk2(3pm), Gnome2(3pm).
+L<perl>(1), L<Glib>(3pm).
 
 =head1 AUTHOR
 

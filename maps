@@ -1,5 +1,4 @@
 GCONF_TYPE_CLIENT	GConfClient	GObject	Gnome2::GConf::Client
 GCONF_TYPE_VALUE_TYPE	GConfValueType	GEnum	Gnome2::GConf::ValueType
-GCONF_TYPE_ERROR	GConfError	GEnum	Gnome2::GConf::Error
 GCONF_TYPE_CLIENT_PRELOAD_TYPE	GConfClientPreloadType	GEnum	Gnome2::GConf::ClientPreloadType
 GCONF_TYPE_CLIENT_ERROR_HANDLING_MODE	GConfClientErrorHandlingMode	GEnum	Gnome2::GConf::ClientErrorHandlingMode

@@ -161,7 +161,7 @@ newSVGConfValue (GConfValue * v)
 			r = newRV_noinc ((SV *) a);	/* safe */
 			l = gconf_value_get_list (v);
 			for (tmp = l; tmp != NULL; tmp = tmp->next)
-				av_push (a, gconfperl_sv_from_value (v));
+				av_push (a, gconfperl_sv_from_value ((GConfValue *) tmp->data));
 			
 			hv_store (h, "type", 4,
 				  gperl_convert_back_enum (GCONF_TYPE_VALUE_TYPE, t), 0);
@@ -274,3 +274,77 @@ SvGConfValue (SV * data)
 MODULE = Gnome2::GConf::Value	PACKAGE = Gnome2::GConf::Value
 
 
+=for object Gnome2::GConf::Value Opaque datatype for generic values
+=cut
+
+=for position SYNOPSIS
+
+=head1 SYNOPSIS
+
+  $client = Gnome2::GConf::Client->get_default;
+  $client->set($config_key,
+      {
+        type  => 'string',
+	value => 'Hello, World',
+      });
+  print "The Meaning of Life." if ($client->get($another_key)->{value} == 42);
+
+=cut
+
+=for position DESCRIPTION
+
+=head1 DESCRIPTION
+
+C<GConfValue> is a dynamic type similar to C<GValue>,  and represents a value
+that can be obtained from or stored in the configuration database; it contains
+the value bound to a key, and its type.
+
+In perl, it's an hashref containing these keys:
+
+=over
+
+=item B<type>
+
+The type of the data.  Fundamental types are 'string', 'int', 'float' and
+'bool'.  Lists are handled by passing an arrayref as the payload of the C<value>
+key:
+	
+	$client->set($key, { type => 'string', value => 'some string' });
+	$client->set($key, { type => 'float',  value => 0.5           });
+	$client->set($key, { type => 'bool',   value => FALSE         });
+	$client->set($key, { type => 'int',    value => [0..15]       });
+	
+Pairs are handled by using the special type 'pair', and passing, in place
+of the C<value> key, the C<car> and the C<cdr> keys, each containing an hashref
+representing a GConfValue:
+
+	$client->set($key, {
+			type => 'pair',
+			car  => { type => 'string', value => 'some string' },
+			cdr  => { type => 'int',    value => 42            },
+		});
+
+This is needed since pairs might have different types; lists, instead, are of
+the same type.
+
+=item B<value>
+
+The payload, containing the value of type C<type>.  It is used only for
+fundamental types (scalars or lists).
+
+=item B<car>, B<cdr>
+
+Special keys, that must be used only when working with the 'pair' type.
+
+=back
+
+=cut
+
+=for see_also
+
+=head1 SEE ALSO
+
+L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Entry>(3pm), L<Gnome2::GConf::Schema>(3pm),
+L<Gnome2::GConf::ChangeSet>(3pm).
+
+=cut

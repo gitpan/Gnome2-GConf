@@ -1,54 +1,63 @@
 #
-# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.3 2003/11/21 11:29:48 ebassi Exp $
+# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.12 2004/03/24 14:26:34 ebassi Exp $
 #
 
 use 5.008;
+use strict;
+use warnings;
 use Cwd;
 use File::Spec;
 use ExtUtils::MakeMaker;
 
 # minimum required version of dependancies we need to build
 our %build_reqs = (
-	'perl-ExtUtils-Depends'   => '0.1',
-	'perl-ExtUtils-PkgConfig' => '0.1',
-	'perl-Glib'               => '1.012',
-	'perl-Gtk2'               => '1.012',
+	'perl-ExtUtils-Depends'   => '0.2',
+	'perl-ExtUtils-PkgConfig' => '1.03',
+	'perl-Glib'               => '1.040', # for Glib::MakeHelper
+	'perl-Gtk2'               => '1.040', # for Gtk2::CodeGen
 	'GConf'                   => '1.2.0',
-);
-
-# minimum required version of dependancies we need to run
-our %runtime_reqs = (
-	'GConf'	=> undef,
 );
 
 # Writing a fake Makefile ensures that CPAN will pick up the correct
 # dependencies and install them.
 unless (eval "use ExtUtils::Depends;"
            . "use ExtUtils::PkgConfig;"
-		   . "use Gtk2::CodeGen;"
+	   . "use Gtk2::CodeGen;"
            # just seeing if Glib is available isn't enough, make sure
            # it's recent enough, too 
            . "use Glib '$build_reqs{'perl-Glib'}';"
            . "use Gtk2 '$build_reqs{'perl-Gtk2'}';"
+           . "use Glib::MakeHelper;"
            . "1") {
    warn "$@\n";
    WriteMakefile(
          PREREQ_FATAL => 1,
          PREREQ_PM    => {
-            Glib::                => $build_reqs{'perl-Glib'},
-            Gtk2::                => $build_reqs{'perl-Gtk2'},
-            ExtUtils::Depends::   => $build_reqs{'perl-ExtUtils-Depends'},
-            ExtUtils::PkgConfig:: => $build_reqs{'perl-ExtUtils-PkgConfig'},
+            'Glib'                => $build_reqs{'perl-Glib'},
+            'Gtk2'                => $build_reqs{'perl-Gtk2'},
+            'ExtUtils::Depends'   => $build_reqs{'perl-ExtUtils-Depends'},
+            'ExtUtils::PkgConfig' => $build_reqs{'perl-ExtUtils-PkgConfig'},
          },
    );
    exit 1; # not reached
 }
 
-%pkgcfg = ExtUtils::PkgConfig->find ('gconf-2.0 >= ' . $build_reqs{GConf});
-
-$runtime_reqs{GConf} = $pkgcfg{modversion};
-
 mkdir 'build', 0777;
+
+our %pkgcfg = ExtUtils::PkgConfig->find ('gconf-2.0 >= '.$build_reqs{GConf});
+
+
+our @xs_files = <xs/*.xs>;
+our %pm_files = (
+    'GConf.pm'		=> '$(INST_LIBDIR)/GConf.pm',
+);
+our %pod_files = (
+    'GConf.pm'		=> '$(INST_MAN3DIR)/Gnome2::GConf.$(MAN3EXT)',
+    Glib::MakeHelper->do_pod_files (@xs_files),
+);
+
+ExtUtils::PkgConfig->write_version_macros ("build/gconfperl-version.h",
+                                           'gconf-2.0' => 'GCONF');
 
 #
 # autogeneration
@@ -60,27 +69,17 @@ Gtk2::CodeGen->write_boot (ignore => '^Gnome2::GConf$');
 # we need to use ExtUtils::Depends to get relevant information out of
 # the Glib extension, and to save config information for other modules which
 # will chain from this one.
-
-my %pm_files = (
-    'GConf.pm'		=> '$(INST_LIBDIR)/GConf.pm',
-);
-
-my %pod_files = (
-    'GConf.pm'		=> '$(INST_MAN3DIR)/Gnome2::GConf.$(MAN3EXT)',
-);
-
-$gconf = ExtUtils::Depends->new ('Gnome2::GConf', 'Gtk2', 'Glib');
-$gconf->set_inc ($pkgcfg{cflags} . ' -I. -I./build ');
+our $gconf = ExtUtils::Depends->new ('Gnome2::GConf', 'Glib');
+$gconf->set_inc ($pkgcfg{cflags} . ' -I./build ');
 $gconf->set_libs ($pkgcfg{libs});
-$gconf->add_xs (<xs/*.xs>);
+$gconf->add_xs (@xs_files);
 $gconf->add_pm (%pm_files);
 my $cwd = cwd();
-$gconf->add_typemaps (map {File::Spec->catfile($cwd,$_)}
-					'build/gconfperl.typemap',
-					);
-$gconf->add_headers ('gconfperl.h');
-
-$gconf->install (qw(gconfperl.h build/gconfperl-autogen.h));
+$gconf->add_typemaps (map { File::Spec->catfile($cwd, $_) }
+                      'build/gconfperl.typemap', 'gconf.typemap');
+$gconf->install (qw(gconfperl.h
+		build/gconfperl-autogen.h
+		build/gconfperl-version.h));
 $gconf->save_config ('build/IFiles.pm');
 
 WriteMakefile(
@@ -93,58 +92,21 @@ WriteMakefile(
     $gconf->get_makefile_vars,
 );
 
-#
-# there's a bug in the MakeMaker output which results in .xs files in a
-# subdirectory being turned into .o files in this dir.  the bug is a missing
-# -o on the compiler command line.  this is a hackish fix for it.
-#
-package MY;
-use Cwd;
-
-sub const_cccmd {
-	my $inherited = shift->SUPER::const_cccmd (@_);
-	$inherited .= ' -o $@';
-	$inherited;
-}
-
-sub postamble
+sub MY::postamble
 {
-	my @dirs = qw{rpms rpms/BUILD rpms/RPMS rpms/SOURCES
-		      rpms/SPECS rpms/SRPMS};
-	my $cwd = getcwd();
-	
-	my %subs = (
-		'VERSION' => '$(VERSION)',
-		'SOURCE' => '$(DISTNAME)-$(VERSION).tar.gz',
-		'GNOMEPRINT_RUN' => $runtime_reqs{'GnomePrint'},
-		'GNOMEPRINT' => $build_reqs{'GnomePrint'},
+	return Glib::MakeHelper->postamble_clean ()
+	     . Glib::MakeHelper->postamble_docs_full (
+		DEPENDS => $gconf,
+		DOCTYPES => 'doctypes',
+		COPYRIGHT_FROM => 'copyright.pod',
+	       )
+	     . Glib::MakeHelper->postamble_rpms (
+		'GCONF' => $build_reqs{'GConf'},
 		'PERL_EXTUTILS_DEPENDS' => 
 			$build_reqs{'perl-ExtUtils-Depends'},
 		'PERL_EXTUTILS_PKGCONFIG' => 
 			$build_reqs{'perl-ExtUtils-PkgConfig'},
 		'PERL_GLIB' => $build_reqs{'perl-Glib'},
 		'PERL_GTK' => $build_reqs{'perl-Gtk2'},
-	);
-	
-	my $substitute = '$(PERL) -npe \''.join('; ', map {
-			"s/\\\@$_\\\@/$subs{$_}/g";
-		} keys %subs).'\'';
-
-	"
-realclean ::
-	-\$(RM_RF) build perl-\$(DISTNAME).spec
-
-rpms/:
-	-mkdir @dirs
-
-SUBSTITUTE=$substitute
-
-perl-\$(DISTNAME).spec: perl-\$(DISTNAME).spec.in \$(VERSION_FROM) Makefile
-	\$(SUBSTITUTE) \$+ > \$@
-
-dist-rpms: Makefile dist perl-\$(DISTNAME).spec rpms/
-	cp \$(DISTNAME)-\$(VERSION).tar.gz rpms/SOURCES/
-	rpmbuild -ba --define \"_topdir $cwd/rpms\" perl-\$(DISTNAME).spec
-"
+	       );
 }
-package MAIN;

@@ -84,3 +84,42 @@ SvGConfChangeSet (SV * data)
 MODULE = Gnome2::GConf::ChangeSet PACKAGE = Gnome2::GConf::ChangeSet PREFIX = gconf_change_set_
 
 
+=for object Gnome2::GConf::ChangeSet A set of configuration changes to be made
+=cut
+
+=for position SYNOPSIS
+
+=head1 SYNOPSIS
+
+    $cs = {
+        '/apps/someapp/some_int_key'    => { type => 'int',    value => 42 },
+        '/apps/someapp/some_string_key' => { type => 'string', value => 'hi' },
+    };
+
+    $reverse_cs = $client->reverse_change_set($cs);
+    $client->commit_change_set($cs, FALSE);
+
+=cut
+
+=for position DESCRIPTION
+
+=head1 DESCRIPTION
+
+A C<GConfChangeSet> allows you to collect a set of changes to configuration keys
+(set/unset operations). You can then commit all the changes at once.
+
+In C, C<GConfChangeSet> is an hash containing keys and C<GConfValue>s to be
+committed in a single pass (though not yet with an atomic operation).  Since
+perl has hashes as a built-in type, C<GConfChangeSet> is threated as an hash
+with the GConf keys as keys, and their relative L<Gnome2::GConf::Value> as
+payload.
+
+=cut
+
+=for see_also
+
+=head1 SEE ALSO
+
+L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Value>(3pm).
+
+=cut
