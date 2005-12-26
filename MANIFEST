@@ -24,6 +24,7 @@ TODO
 xs/GConf2.xs
 xs/GConfChangeSet.xs
 xs/GConfClient.xs
+xs/GConfEngine.xs
 xs/GConfEntry.xs
 xs/GConfSchema.xs
 xs/GConfValue.xs

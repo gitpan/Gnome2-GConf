@@ -1,3 +1,41 @@
+Overview of changes since 1.020
+===============================
+
+* The "An Address Indicates Where It Is" release.
+* Wrap Gnome2::GConf::Engine::get_for_addresses. [Emmanuele]
+
+Overview of changes since 1.013
+===============================
+
+* The "Differential Engine" release
+* Fix Gnome2::GConf::Engine reference mechanism. [Emmanuele] 
+* Use Glib::CodeGen from the stable Glib release. [Emmanuele]
+
+Overview of changes since 1.012
+===============================
+
+* The "Breaking up is hard to do" release.
+* Implemented the new error handling system. [Emmanuele]
+* Changed Gnome2::GConf::Client::all_entries semantics. [Emmanuele]
+* Documentation fixes. [Emmanuele]
+
+Overview of changes since 1.011
+===============================
+
+* Finished the GConfEngine bindings. [Emmanuele]
+
+Overview of changes since 1.010
+===============================
+
+* Require GConf 2.0.0. [Emmanuele]
+
+Overview of changes since 1.000
+===============================
+
+* Wrapped GConfEngine. [Emmanuele]
+* Documentation fixes. [Emmanuele]
+* Require Glib 1.070. [Emmanuele]
+
 Overview of changes since 0.94
 ==============================
 

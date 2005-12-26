@@ -85,11 +85,8 @@ gconfperl_client_error_marshal (GClosure * closure,
 
 	GPERL_CLOSURE_MARSHAL_PUSH_INSTANCE (param_values);
 	
-	/* the second parameter for this signal is defined as a GError
-	 * instance, but since we do not have the corresponding type for Perl,
-	 * we simply pass the error message that GError contains. */
 	err = (GError *) g_value_get_pointer (param_values + 1);
-	XPUSHs (sv_2mortal (newSVpv (err->message, 0)));
+	XPUSHs (sv_2mortal (gperl_sv_from_gerror (err)));
 
 	GPERL_CLOSURE_MARSHAL_PUSH_DATA;
 	
@@ -109,56 +106,128 @@ BOOT:
 	gperl_signal_set_marshaller_for (GCONF_TYPE_CLIENT, "error",
 					 gconfperl_client_error_marshal);
 
+=for position DESCRIPTION
+
+=head1 DESCRIPTION
+
+Gnome2::GConf::Client is a commodity class based on C<GObject> used to access
+the default C<GConfEngine> provided by the GConf daemon.  It has a cache,
+finer-grained notification of changes and a default error handling mechanism.
+
+=head1 ERROR HANDLING
+
+In C, each fallible function has a C<GError> optional argument: by setting it
+to a valid C<GError> structure, the function will fill it in case of error; by
+passing a NULL value, the function will silently fail.
+
+In Perl, each fallible method has a boolean C<check_error> argument; by setting
+this argument to C<TRUE>, the method will croak con failure, otherwise it will
+silently fail.
+
+B<NOTE>: To retain backward compatibility, the default behaviour is to check
+each error; that is, the C<check_error> argument silently is set to TRUE.
+
+In order to catch an error, you might use eval as a try...catch equivalent:
+
+  eval { $s = $client->get_string($some_key); 1; };
+  if (Glib::Error::matches($@, 'Gnome2::GConf::Error', 'bad-key'))
+  {
+    # recover from a bad-key error.
+  }
+
+On failure, if the error is unchecked, the C<unreturned_error> signal will be
+fired by the Gnome2::GConf::Client object; the C<error> signal will B<always>
+be fired, whether the error is checked or not.
+
+If you want to let the global error handler function catch just the unchecked
+error, use the C<Gnome2::GConf::Client::set_error_handling> method, and attach
+a callback to the C<unreturned_error> signal:
+
+  $client->set_error_handling('handle-unreturned');
+  $client->signal_connect(unreturned_error => sub {
+      my ($client, $error) = @_;
+      warn $error; # is a Glib::Error
+    });
+
+=cut
 
 GConfClient_noinc *
 gconf_client_get_default (class)
     C_ARGS:
      	/* void */
 
+GConfClient_noinc *
+gconf_client_get_for_engine (class, engine)
+	GConfEngine * engine
+    C_ARGS:
+    	engine
+
 =for enum GConfClientPreloadType
 =cut
+
 void
-gconf_client_add_dir (client, dir, preload)
+gconf_client_add_dir (client, dir, preload, check_error=TRUE)
 	GConfClient * client
 	const gchar * dir
 	GConfClientPreloadType preload
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	gconf_client_add_dir (client, dir, preload, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+     		gconf_client_add_dir (client, dir, preload, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else
+		gconf_client_add_dir (client, dir, preload, NULL);
 
 void
-gconf_client_remove_dir (client, dir)
+gconf_client_remove_dir (client, dir, check_error=TRUE)
 	GConfClient * client
 	const gchar * dir
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	gconf_client_remove_dir (client, dir, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		gconf_client_remove_dir (client, dir, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else
+		gconf_client_remove_dir (client, dir, NULL);
 
 guint
-gconf_client_notify_add (client, namespace_section, func, data=NULL)
+gconf_client_notify_add (client, namespace_section, func, data=NULL, check_error=TRUE)
 	GConfClient * client
 	const gchar * namespace_section
 	SV * func
 	SV * data
+	gboolean check_error
     PREINIT:
      	GPerlCallback * callback;
 	GError * err = NULL;
 	guint cnxn_id = 0;
     CODE:
      	callback = gconfperl_notify_func_create (func, data);
-	cnxn_id = gconf_client_notify_add (client, namespace_section,
-					   gconfperl_notify_func,
-					   callback,
-					   (GFreeFunc) gperl_callback_destroy,
-					   &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+	if (TRUE == check_error) {
+		cnxn_id = gconf_client_notify_add (client, namespace_section,
+					gconfperl_notify_func,
+					callback,
+					(GFreeFunc) gperl_callback_destroy,
+					&err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+
+	}
+	else {
+		cnxn_id = gconf_client_notify_add (client, namespace_section,
+					gconfperl_notify_func,
+					callback,
+					(GFreeFunc) gperl_callback_destroy,
+					NULL);
+	}
 	RETVAL = cnxn_id;
     OUTPUT:
      	RETVAL
@@ -166,23 +235,36 @@ gconf_client_notify_add (client, namespace_section, func, data=NULL)
 void
 gconf_client_notify_remove (GConfClient * client, guint cnxn_id)
 
-##void gconf_client_set_error_handling (GConfClient *client, GConfClientErrorHandlingMode mode);
+=for enum GConfClientErrorHandlingMode
+=cut
+
+void
+gconf_client_set_error_handling (client, mode)
+	GConfClient * client
+	GConfClientErrorHandlingMode mode
+
 ##void gconf_client_set_global_default_error_handler (GConfClientErrorHandlerFunc func);
 
 void
 gconf_client_clear_cache (GConfClient * client)
 
 void
-gconf_client_preload (client, dirname, type)
+gconf_client_preload (client, dirname, type, check_error=TRUE)
 	GConfClient * client
 	const gchar * dirname
 	GConfClientPreloadType type
+	gboolean check_error
     PREINIT:
     	GError * err = NULL;
     CODE:
-    	gconf_client_preload (client, dirname, type, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		gconf_client_preload (client, dirname, type, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		gconf_client_preload (client, dirname, type, NULL);
+	}
 
 
 ### Get/Set methods
@@ -192,14 +274,20 @@ gconf_client_preload (client, dirname, type)
 Set the C<GConfValue> I<$val> bound to the given I<$key>.
 =cut
 void
-gconf_client_set (client, key, value)
+gconf_client_set (client, key, value, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	GConfValue * value
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-	gconf_client_set (client, key, value, &err);
+    	if (TRUE == check_error) {
+		gconf_client_set (client, key, value, &err);
+	}
+	else {
+		gconf_client_set (client, key, value, NULL);
+	}
 	gconf_value_free (value);	/* leaks otherwise */
 	if (err)
 		gperl_croak_gerror (NULL, err);
@@ -210,209 +298,297 @@ gconf_client_set (client, key, value)
 Fetch the C<GConfValue> bound to the give I<$key>.
 =cut
 GConfValue *
-gconf_client_get (client, key)
+gconf_client_get (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get (client, key, NULL);
+	}
     OUTPUT:
 	RETVAL
 
 
 ##GConfValue* gconf_client_get_without_default (GConfClient *client, const gchar *key, GError **err);
 GConfValue *
-gconf_client_get_without_default (client, key)
+gconf_client_get_without_default (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_without_default (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_without_default (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_without_default (client, key, NULL);
+	}
     OUTPUT:
 	RETVAL
 
 ##GConfEntry* gconf_client_get_entry (GConfClient *client, const gchar *key, const gchar *locale, gboolean use_schema_default, GError **err);
 GConfEntry *
-gconf_client_get_entry (client, key, locale, use_schema_default)
+gconf_client_get_entry (client, key, locale, use_schema_default, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	const gchar * locale
 	gboolean use_schema_default
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_entry (client, key, locale, use_schema_default, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_entry (client, key, locale, use_schema_default, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_entry (client, key, locale, use_schema_default, NULL);
+	}
     OUTPUT:
 	RETVAL
 
 ##GConfValue* gconf_client_get_default_from_schema (GConfClient *client, const gchar *key, GError **err);
 GConfValue *
-gconf_client_get_default_from_schema (client, key)
+gconf_client_get_default_from_schema (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_default_from_schema (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_default_from_schema (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_default_from_schema (client, key, NULL);
+	}
     OUTPUT:
 	RETVAL
 
 ##gboolean gconf_client_unset (GConfClient* client, const gchar* key, GError** err);
 gboolean
-gconf_client_unset (client, key)
+gconf_client_unset (client, key, check_error=FALSE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_unset (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_unset (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_unset (client, key, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##GSList* gconf_client_all_entries (GConfClient *client, const gchar *dir, GError **err);
 =for apidoc
-This method returns an array containing all the entries of a given directory.
+=for signature list = $client->all_entries($dir, $check_error=TRUE)
+This method returns an array containing all the entries (as L<Gnome2::GConf::Entry>) of a given directory.
 =cut
 void
-gconf_client_all_entries (client, dir)
+gconf_client_all_entries (client, dir, check_error=TRUE)
 	GConfClient * client
 	const gchar * dir
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
 	GSList * l, * tmp;
     PPCODE:
-     	l = gconf_client_all_entries (client, dir, &err);
-		
-	if (err)
-		gperl_croak_gerror (NULL, err);
-	for (tmp = l; tmp != NULL; tmp = tmp->next) 
-		XPUSHs (sv_2mortal (newSVGChar (gconf_entry_get_key(tmp->data))));
+    	if (TRUE == check_error) {
+		l = gconf_client_all_entries (client, dir, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		l = gconf_client_all_entries (client, dir, NULL);
+	}
+	for (tmp = l; tmp != NULL; tmp = tmp->next) {
+		GConfEntry *entry = (GConfEntry *) tmp->data;
+		XPUSHs (sv_2mortal (newSVGConfEntry (entry)));
+	}
 	g_slist_free (l);
 
 ##GSList* gconf_client_all_dirs (GConfClient *client, const gchar *dir, GError **err);
 =for apidoc
+=for signature list = $client->all_dirs($dir, $check_error=TRUE)
+
 This method returns an array containing all the directories in a given directory.
 =cut
 void
-gconf_client_all_dirs (client, dir)
+gconf_client_all_dirs (client, dir, check_error=TRUE)
 	GConfClient * client
 	const gchar * dir
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
 	GSList * l, * tmp;
     PPCODE:
-     	l = gconf_client_all_dirs (client, dir, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		l = gconf_client_all_dirs (client, dir, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		l = gconf_client_all_dirs (client, dir, NULL);
+	}
 	for (tmp = l; tmp != NULL; tmp = tmp->next)
 		XPUSHs (sv_2mortal (newSVGChar (tmp->data)));
 	g_slist_free (l);
 
 ##void gconf_client_suggest_sync (GConfClient* client, GError** err);
 void
-gconf_client_suggest_sync (client)
+gconf_client_suggest_sync (client, check_error=TRUE)
 	GConfClient * client
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	gconf_client_suggest_sync (client, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		gconf_client_suggest_sync (client, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		gconf_client_suggest_sync (client, NULL);
+	}
 
 ##gboolean gconf_client_dir_exists (GConfClient* client, const gchar* dir, GError** err);
 gboolean
-gconf_client_dir_exists (client, dir)
+gconf_client_dir_exists (client, dir, check_error=TRUE)
 	GConfClient * client
 	const gchar * dir
+	gboolean check_error
     PREINIT:
 	GError * err = NULL;
     CODE:
-	RETVAL = gconf_client_dir_exists (client, dir, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_dir_exists (client, dir, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_dir_exists (client, dir, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##gboolean gconf_client_key_is_writable (GConfClient* client, const gchar* key, GError** err);
 gboolean
-gconf_client_key_is_writable (client, key)
+gconf_client_key_is_writable (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_key_is_writable (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_key_is_writable (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_key_is_writable (client, key, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##gdouble gconf_client_get_float (GConfClient* client, const gchar* key, GError** err);
 gdouble
-gconf_client_get_float (client, key)
+gconf_client_get_float (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_float (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_float (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_float (client, key, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##gint gconf_client_get_int (GConfClient* client, const gchar* key, GError** err);
 gint
-gconf_client_get_int (client, key)
+gconf_client_get_int (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_int (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_int (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_int (client, key, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##/* free the retval, if non-NULL */
 ##gchar* gconf_client_get_string(GConfClient* client, const gchar* key, GError** err);
 gchar_own *
-gconf_client_get_string (client, key)
+gconf_client_get_string (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_get_string (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_string (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_string (client, key, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##gboolean gconf_client_get_bool  (GConfClient* client, const gchar* key, GError** err);
 gboolean
-gconf_client_get_bool (client, key)
+gconf_client_get_bool (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
+	gboolean check_error
      PREINIT:
      	GError * err = NULL;
      CODE:
-     	RETVAL = gconf_client_get_bool (client, key, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+     	if (TRUE == check_error) {
+		RETVAL = gconf_client_get_bool (client, key, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_get_bool (client, key, NULL);
+	}
      OUTPUT:
      	RETVAL
 
@@ -444,95 +620,138 @@ gconf_client_get_schema (client, key)
 
 #if 0
 =for apidoc
-=for signature list = $client->get_list($key)
+=for signature list = $client->get_list($key, $check_error=TRUE)
 =cut
 
 void
-gconf_client_get_list (GConfClient * client, const gchar * key)
+gconf_client_get_list (GConfClient * client, const gchar * key, gboolean check_error=TRUE)
 
 =for apidoc
-=for signature (car, cdr) = $client->get_pair($key)
+=for signature (car, cdr) = $client->get_pair($key, $check_error=TRUE)
 =cut
 
 void
-gconf_client_get_pair (GConfClient * client, const gchar * key)
+gconf_client_get_pair (GConfClient * client, const gchar * key, gboolean check_error=TRUE)
 
 #endif
 
 ## gboolean gconf_client_set_float (GConfClient* client, const gchar* key, gdouble val, GError** err);
+=for apidoc
+Returns FALSE on failure.
+=cut
 gboolean
-gconf_client_set_float (client, key, val)
+gconf_client_set_float (client, key, val, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	gdouble val
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_set_float (client, key, val, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_set_float (client, key, val, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_set_float (client, key, val, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ## gboolean gconf_client_set_int (GConfClient* client, const gchar* key, gint val, GError** err);
+=for apidoc
+Returns FALSE on failure.
+=cut
 gboolean
-gconf_client_set_int (client, key, val)
+gconf_client_set_int (client, key, val, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	gint val
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_set_int (client, key, val, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_set_int (client, key, val, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_set_int (client, key, val, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ## gboolean gconf_client_set_string (GConfClient* client, const gchar* key, const gchar* val, GError** err);
+=for apidoc
+Returns FALSE on failure
+=cut
 gboolean
-gconf_client_set_string (client, key, val)
+gconf_client_set_string (client, key, val, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	const gchar * val
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_set_string (client, key, val, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_set_string (client, key, val, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_set_string (client, key, val, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ## gboolean gconf_client_set_bool (GConfClient* client, const gchar* key, gboolean val, GError** err);
+=for apidoc
+Returns FALSE on failure.
+=cut
 gboolean
-gconf_client_set_bool (client, key, val)
+gconf_client_set_bool (client, key, val, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	gboolean val
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_set_bool (client, key, val, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_set_bool (client, key, val, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_set_bool (client, key, val, NULL);
+	}
     OUTPUT:
      	RETVAL
 
 ##gboolean     gconf_client_set_schema  (GConfClient* client, const gchar* key,
 ##                                       const GConfSchema* val, GError** err);
 gboolean
-gconf_client_set_schema (client, key, schema)
+gconf_client_set_schema (client, key, schema, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	GConfSchema * schema
+	gboolean check_error
     PREINIT:
 	GError * err = NULL;
     CODE:
-	RETVAL = gconf_client_set_schema (client, key, schema, &err);
-	gconf_schema_free (schema);	/* leaks otherwise */
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_set_schema (client, key, schema, &err);
+		gconf_schema_free (schema);	/* leaks otherwise */
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_set_schema (client, key, schema, NULL);
+		gconf_schema_free (schema);
+	}
     OUTPUT:
      	RETVAL
 
@@ -552,25 +771,27 @@ gconf_client_set_schema (client, key, schema)
 #if 0
 
 gboolean
-gconf_client_set_list (client, key, list_type, list)
+gconf_client_set_list (client, key, list_type, list, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	const gchar * list_type
 	SV * list
+	gboolean check_error
 
 gboolean
-gconf_client_set_pair (client, key, car, cdr)
+gconf_client_set_pair (client, key, car, cdr, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	GConfValue * car
 	GConfValue * cdr
+	gboolean check_error
 
 #endif
 
 ##/* Functions to emit signals */
 ##void         gconf_client_error                  (GConfClient* client, GError* error);
 =for apidoc
-=for arg error (hash) a L<Glib::Error>
+=for arg error a L<Glib::Error>
 
 You should not use this method.
 This method emits the "error" signal.
@@ -590,7 +811,7 @@ gconf_client_error (client, error)
 
 ##void         gconf_client_unreturned_error       (GConfClient* client, GError* error);
 =for apidoc
-=for arg error (hash) a L<Glib::Error>
+=for arg error a L<Glib::Error>
 
 You should not use this method.
 This method emits the "unreturned-error" signal.
@@ -639,8 +860,8 @@ gconf_client_value_changed (client, key, value)
 ##                                                  gboolean remove_committed,
 ##                                                  GError** err);
 =for apidoc
-=for signature boolean = $client->commit_change_set ($cs, $remove_committed)
-=for signature (boolean, hash) = $client->commit_change_set ($cs, $remove_committed)
+=for signature boolean = $client->commit_change_set ($cs, $remove_committed, $check_error=TRUE)
+=for signature (boolean, changeset) = $client->commit_change_set ($cs, $remove_committed, $check_error=TRUE)
 
 Commit a given L<Gnome2::GConf::ChangeSet>.  In scalar context, or if
 I<$remove_committed> is FALSE, return a boolean value; otherwise, return the
@@ -649,18 +870,24 @@ successfully committed changes.
 
 =cut
 void
-gconf_client_commit_change_set (client, cs, remove_committed)
+gconf_client_commit_change_set (client, cs, remove_committed, check_error=TRUE)
 	GConfClient * client
 	GConfChangeSet * cs
 	gboolean remove_committed
+	gboolean check_error
     PREINIT:
 	GError * err = NULL;
 	gboolean res;
     PPCODE:
-	res = gconf_client_commit_change_set (client, cs, remove_committed, &err);
-	if (err) {
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		res = gconf_client_commit_change_set (client, cs, remove_committed, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
 	}
+	else {
+		res = gconf_client_commit_change_set (client, cs, remove_committed, NULL);
+	}
+	
 	if ((GIMME_V != G_ARRAY) || (! remove_committed)) {
 		/* push on the stack the returned boolean value if the user
 		 * wants only that, or if the user does not want to remove
@@ -679,20 +906,24 @@ gconf_client_commit_change_set (client, cs, remove_committed)
 ##                                                  GConfChangeSet* cs,
 ##                                                  GError** err);
 =for apidoc
-
 Reverse the given L<Gnome2::GConf::ChangeSet>.
-
 =cut
 GConfChangeSet *
-gconf_client_reverse_change_set (client, cs)
+gconf_client_reverse_change_set (client, cs, check_error=TRUE)
 	GConfClient * client
 	GConfChangeSet * cs
+	gboolean check_error
     PREINIT:
      	GError * err = NULL;
     CODE:
-     	RETVAL = gconf_client_reverse_change_set (client, cs, &err);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+    	if (TRUE == check_error) {
+		RETVAL = gconf_client_reverse_change_set (client, cs, &err);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_reverse_change_set (client, cs, NULL);
+	}
     OUTPUT:
 	RETVAL
 
@@ -715,19 +946,26 @@ database.
 
 =cut
 GConfChangeSet *
-gconf_client_change_set_from_current (client, key, ...)
+gconf_client_change_set_from_current (client, check_error=TRUE, key, ...)
 	GConfClient * client
+	gboolean check_error
     PREINIT:
      	char ** keys;
 	int i;
 	GError * err = NULL;
     CODE:
     	keys = g_new0 (char *, items - 1);
-	for (i = 1; i < items; i++)
+	for (i = 2; i < items; i++)
 		keys[i-1] = SvPV_nolen (ST (i));
-	RETVAL = gconf_client_change_set_from_currentv (client, (const gchar **) keys, &err);
-	g_free(keys);
-	if (err)
-		gperl_croak_gerror (NULL, err);
+	if (TRUE == check_error) {
+		RETVAL = gconf_client_change_set_from_currentv (client, (const gchar **) keys, &err);
+		g_free (keys);
+		if (err)
+			gperl_croak_gerror (NULL, err);
+	}
+	else {
+		RETVAL = gconf_client_change_set_from_currentv (client, (const gchar **) keys, NULL);
+		g_free (keys);
+	}
     OUTPUT:
 	RETVAL

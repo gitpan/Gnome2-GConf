@@ -19,6 +19,7 @@
 
 #include "gconfperl.h"
 
+#ifdef GCONFPERL_TYPE_GCONF_ERROR
 /* error codes taken from gconf-error.h */
 static const GEnumValue _gconfperl_gconf_error_values[] = {
   { GCONF_ERROR_SUCCESS, "GCONF_ERROR_SUCCESS", "success" },
@@ -51,7 +52,7 @@ gconfperl_gconf_error_get_type (void)
   
   return type;
 }
-
+#endif
 
 MODULE = Gnome2::GConf	PACKAGE = Gnome2::GConf PREFIX = gconf_
 
@@ -91,3 +92,66 @@ CHECK_VERSION (class, major, minor, micro)
 	RETVAL = GCONF_CHECK_VERSION (major, minor, micro);
     OUTPUT:
 	RETVAL
+
+## gconf.h
+
+=for object Gnome2::GConf::main
+=cut
+
+=for apidoc
+=for signature boolean = Gnome2::GConf->valid_key ($key)
+=for signature (boolean, string) = Gnome2::GConf->valid_key ($key)
+
+In scalar context, it returns a boolean value.
+In array context, it returns a boolean value and a string containing a
+user-readable explanation of the problem.
+=cut
+void
+gconf_valid_key (class, key)
+	const gchar * key
+    C_ARGS:
+        key
+    PREINIT:
+	gchar *why_invalid = NULL;
+	gboolean is_valid;
+    PPCODE:
+	is_valid = gconf_valid_key (key, &why_invalid);
+	if (GIMME_V == G_ARRAY) {
+		EXTEND (SP, 2);
+		PUSHs (sv_2mortal (newSViv (is_valid)));
+		PUSHs (sv_2mortal (newSVpv (why_invalid, 0)));
+		g_free (why_invalid); /* leaks otherwise */
+	}
+	else {
+		XPUSHs (sv_2mortal (newSViv (is_valid)));
+	}
+
+=for apidoc
+Return TRUE if the path $below would be somewhere below the directory $above.
+=cut
+gboolean
+gconf_key_is_below (class, above, below)
+	const gchar * above
+	const gchar * below
+    C_ARGS:
+    	above, below
+
+=for apidoc
+Returns a concatenation of $dir and $key.
+=cut
+gchar*
+gconf_concat_dir_and_key (class, dir, key)
+	const gchar * dir
+	const gchar * key
+    C_ARGS:
+    	dir, key
+
+=for apidoc
+Returns a different string every time (at least, the chances of getting a
+duplicate are like one in a zillion). The key is a legal gconf key name (a
+single element of one).
+=cut
+gchar*
+gconf_unique_key (class)
+    C_ARGS:
+    	/* void */

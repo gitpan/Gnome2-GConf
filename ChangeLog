@@ -1,3 +1,148 @@
+2005-12-26 22:09 (+0100) ebassi
+
+	* AUTHOR: change email address
+
+	* README, NEWS, GConf.pm: bump to version 1.021
+
+	* xs/GConfEngine.xs: wrap:
+	
+		gconf_engine_get_for_addresses()
+		
+	under version check for GConf >= 2.7.1.
+
+2005-09-05 22:15 (+0200) ebassi
+
+	* README, NEWS, GConf.pm: bump to version 1.020.
+
+	* Makefile.PL: require Glib >= 1.100 and Gtk2 >= 1.100, and remove the
+	unstable warning. Also, use Glib::CodeGen instead of Gtk2::CodeGen.
+
+2005/03/07 00:47 (+0100) ebassi
+
+	* xs/GConfEngine.xs: remove g_boxed_copy from our get_type function.
+
+2005/02/11 12:30 (+0100) ebassi
+	
+	* GConf.pm: remove the ERROR HANDLING section from the perldoc.
+	
+	* xs/GConfClient.xs: the "error" and "unreturned_error" signals now
+	pass a Glib::Error to the callbacks, instead of the error message. see
+	Glib::Error for details on the perl object.
+	
+	* xs/GConfClient.xs: implement the new error handling system; each
+	fallible method will have a check_error argument (default to TRUE,
+	to retain backward compatibility): if it is set to TRUE, the method
+	will croak on error, otherwise it will silently fail. The new error
+	handling system is documented inside the Gnome2::GConf::Client perldoc
+	page.
+
+	* xs/GConfClient.xs: bind
+		gconf_client_set_error_handling
+	
+	* xs/GConfClient.xs: apidoc fixes
+
+	* xs/GConfClient.xs: finally change the semantics of ::all_entries;
+	instead of an array of strings for the keys, now we return an array
+	of Gnome2::GConf::Entry objects, since this is the same thing that
+	the C library does, and we have had bindings for GConfEntry opaque
+	containers for a while, now.
+
+	* GConf.pm: bump to 1.013.
+
+2005/01/31 23:58 (-0500) muppetman
+
+	* t/00.GConf.t: fix skip count
+
+2005/01/28 01:18 (+0100) ebassi
+
+	* GConf.pm, META.yml, NEWS, README: release 1.012.
+
+2005/01/28 01:15 (+0100) ebassi
+
+	* t/00.GConf.t: *really* fix test suite.
+
+2005/01/28 01:05 (+0100) ebassi
+	
+	* xs/GConfEngine.xs: wrap
+		gconf_engine_associate_schema
+		gconf_engine_all_entries
+		gconf_engine_all_dirs
+	
+	* xs/GConfEngine.xs: fix "cut'n'paste" bugs (Torsten Schoenfeld)
+
+	* t/00.GConf.t: fix test suite (Torsten Schoenfeld)
+
+2005/01/24 10:30 (+0100) ebassi
+
+	* Makefile.PL: require GConf 2.0.0; there is no point in keeping the
+	old 1.2.0 requirement.
+
+	* META.yml, NEWS, GConf.pm: release 1.011
+
+2005/01/23 23:47 (+0100) ebassi
+
+	* xs/GConf2.xs: fix a bug in valid_key.
+
+	* t/00.GConf.t: update test suite.
+
+2005/01/23 23:35 (+0100) ebassi
+
+	* Makefile.PL: add the "unstable release" warning.
+
+2005/01/23 23:26 (+0100) ebassi
+
+	* GConf.pm: bumped revision to 1.010.
+
+2005/01/23 22:45 (+0100) ebassi
+
+	* xs/GConf2.xs: wrap utilty functions:
+		gconf_valid_key
+		gconf_concat_dir_and_key
+		gconf_unique_key
+	as class methods.
+
+2005/01/23 22:41 (+0100) ebassi
+	
+	* copyright.pod: update copyright notice
+	
+	* Makefile.PL: require Glib >= 1.070 (this is a development cycle,
+	afterall) and Gtk2 >= 1.070.
+
+	* doctpes: remove links, and beautify apidoc.
+
+	* xs/GConfClient.xs: beatify apidoc.
+
+2005/01/23 22:37 (+0100) ebassi
+
+	A xs/GConfEngine.xs
+	M gconfperl.h
+	M maps
+	M MANIFEST
+	M t/00.GConf.t
+
+	* xs/GConfEngine.xs, gconfperl.h, maps, MANIFEST, t/00.GConf.t:
+	initial import of the GConfEngine bindings.
+
+2005/01/23 22:34 (+0100) ebassi
+
+	* xs/GConfEntry.xs: removed unnecessary variable declaration.
+
+2004/10/24 11:55 (-0400) rwmcfa1
+
+	* MANIFEST.SKIP: updates
+
+	* perl-Gnome2-Gconf.spec.in: new scheme that addresses x86_64 problems
+	found by Carl Nygard
+
+2004/06/02 18:23 (+0200) ebassi
+
+	* GConf.pm: Verified the code inside the SYNOPSIS section of the POD.
+
+2004/04/09 03:56 (+0200) kaffeetisch
+
+	* Makefile.PL: Actually test for the correct versions of EU::Depends
+	and EU::PkgConfig.
+
 2004/03/24 15:26 (+0100) ebassi
 
 	* README, NEWS, GConf.pm: version 1.000.

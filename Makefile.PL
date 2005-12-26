@@ -1,5 +1,5 @@
 #
-# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.12 2004/03/24 14:26:34 ebassi Exp $
+# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.17 2005/09/05 20:32:35 ebassi Exp $
 #
 
 use 5.008;
@@ -13,15 +13,15 @@ use ExtUtils::MakeMaker;
 our %build_reqs = (
 	'perl-ExtUtils-Depends'   => '0.2',
 	'perl-ExtUtils-PkgConfig' => '1.03',
-	'perl-Glib'               => '1.040', # for Glib::MakeHelper
-	'perl-Gtk2'               => '1.040', # for Gtk2::CodeGen
-	'GConf'                   => '1.2.0',
+	'perl-Glib'               => '1.100', # for Glib::MakeHelper
+	'perl-Gtk2'               => '1.100', # for Gtk2::CodeGen
+	'GConf'                   => '2.0.0',
 );
 
 # Writing a fake Makefile ensures that CPAN will pick up the correct
 # dependencies and install them.
-unless (eval "use ExtUtils::Depends;"
-           . "use ExtUtils::PkgConfig;"
+unless (eval "use ExtUtils::Depends '$build_reqs{'perl-ExtUtils-Depends'}';"
+           . "use ExtUtils::PkgConfig '$build_reqs{'perl-ExtUtils-PkgConfig'}';"
 	   . "use Gtk2::CodeGen;"
            # just seeing if Glib is available isn't enough, make sure
            # it's recent enough, too 
@@ -62,8 +62,8 @@ ExtUtils::PkgConfig->write_version_macros ("build/gconfperl-version.h",
 #
 # autogeneration
 #
-Gtk2::CodeGen->parse_maps ('gconfperl');
-Gtk2::CodeGen->write_boot (ignore => '^Gnome2::GConf$');
+Glib::CodeGen->parse_maps ('gconfperl');
+Glib::CodeGen->write_boot (ignore => '^Gnome2::GConf$');
 
 # now we're ready to start creating the makefile.
 # we need to use ExtUtils::Depends to get relevant information out of
@@ -91,6 +91,19 @@ WriteMakefile(
     MAN3PODS	  => \%pod_files,
     $gconf->get_makefile_vars,
 );
+
+#print "
+#WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+#
+#This is an unstable development release of Gnome2::GConf.  The API is
+#not frozen and things are subject to change at any time.  Report any
+#bugs to gtk-perl-list AT gnome DOT org as soon as possible.
+#Please use the stable 1.000 version for important work.
+#
+#WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+#
+#";
+			
 
 sub MY::postamble
 {

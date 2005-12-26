@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 by Emmanuele Bassi (see the file AUTHORS)
+ * Copyright (c) 2003-2005 by Emmanuele Bassi (see the file AUTHORS)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -33,11 +33,15 @@
 # include <gconf/gconf-value.h>
 # include <gconf/gconf.h>
 
-# include "gconfperl-autogen.h"
-# include "gconfperl-version.h"
+#ifndef GCONFPERL_TYPE_GCONF_ERROR
+# define GCONFPERL_TYPE_GCONF_ERROR (gconfperl_gconf_error_get_type ())
+GType gconfperl_gconf_error_get_type (void) G_GNUC_CONST;
+#endif
 
-GType gconfperl_gconf_error_get_type(void);
-# define GCONFPERL_TYPE_GCONF_ERROR gconfperl_gconf_error_get_type()
+#ifndef GCONF_TYPE_ENGINE
+# define GCONF_TYPE_ENGINE (gconfperl_gconf_engine_get_type ())
+GType gconfperl_gconf_engine_get_type (void) G_GNUC_CONST;
+#endif
 
 /* forward declaration for opaque containers converters */
 SV * newSVGConfEntry (GConfEntry *);
@@ -49,6 +53,9 @@ GConfEntry * SvGConfEntry (SV *);
 GConfValue * SvGConfValue (SV *);
 GConfSchema * SvGConfSchema (SV *);
 GConfChangeSet * SvGConfChangeSet (SV *);
+
+# include "gconfperl-autogen.h"
+# include "gconfperl-version.h"
 
 #endif /* _GNOME_GCONF_PERL_H_ */
 

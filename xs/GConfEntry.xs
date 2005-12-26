@@ -29,7 +29,6 @@ newSVGConfEntry (GConfEntry * e)
 {
 	HV * h;
 	SV * r;
-	const gchar * key;
 	GConfValue * value;
 	
 	if (! e)
@@ -39,8 +38,6 @@ newSVGConfEntry (GConfEntry * e)
 	r = newRV_noinc ((SV *) h);	/* safe */
 	
 	/* store the key inside the hashref. */
-	key = gconf_entry_get_key (e);
-	
 	hv_store (h, "key", 3, newSVGChar (gconf_entry_get_key (e)), 0);
 	
 	/* this GConfValue is not a copy, and it should not be modified nor

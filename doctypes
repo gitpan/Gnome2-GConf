@@ -1,4 +1,5 @@
-GConfValue	value hash (see L<Gnome2::GConf::Value>)
-GConfEntry	entry hash (see L<Gnome2::GConf::Entry>)
-GConfSchema	schema hash (see L<Gnome2::GConf::Schema>)
-GConfChangeSet	change set hash (see L<Gnome2::GConf::ChangeSet>)
+GConfValue	value
+GConfEntry	entry
+GConfSchema	schema
+GConfChangeSet	changeset
+GConfEngine	engine

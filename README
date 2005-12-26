@@ -1,5 +1,5 @@
-Gnome2::GConf version 1.000
-==========================
+Gnome2::GConf version 1.021
+===========================
 
 This module allows you to use the GConf configuration system in order to
 store/retrieve the configuration of an application.  GConf is a powerful
@@ -43,19 +43,19 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
   perl >= 5.8.0
-  Glib >= 1.040 (perl module and requisite C libraries)
-  libgconf2 >= 1.2 (C library)
+  Glib >= 1.100 (perl module and requisite C libraries)
+  libgconf2 >= 2.0.0 (C library)
 
 To build from source, you also need:
 
   ExtUtils::Depends >= 0.2
   ExtUtils::PkgConfig >= 1.03
-  Gtk2 >= 1.040 (perl module)
+  Gtk2 >= 1.100 (perl module)
 
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003, 2004 by Emmanuele Bassi <emmanuele.bassi@iol.it>
+Copyright (C) 2003-2005 by Emmanuele Bassi <emmanuele.bassi@iol.it>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public

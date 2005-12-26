@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2003, 2004 by Emmanuele Bassi (see the file AUTHORS)
+# Copyright (c) 2003-2005 by Emmanuele Bassi (see the file AUTHORS)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '1.000';
+our $VERSION = '1.021';
 
 sub dl_load_flags { 0x01 }
 
@@ -60,8 +60,9 @@ sub get_list
 {
 	my $self = shift;	# the object
 	my $key  = shift;
+	my $check_error = shift || 1;
 
-	my $val = $self->get($key);
+	my $val = $self->get($key, $check_error);
 	return $val->{value};
 }
 
@@ -69,8 +70,9 @@ sub get_pair
 {
 	my $self = shift;	# the object
 	my $key  = shift;
+	my $check_error = shift || 1;
 
-	my $val = $self->get($key);
+	my $val = $self->get($key, $check_error);
 	carp "$key is not bound to a pair" if not $val->{type} eq 'pair';
 
 	return ($val->{car}, $val->{cdr});
@@ -82,8 +84,9 @@ sub set_list
 	my $key  = shift;
 	my $type = shift;
 	my $list = shift;
+	my $check_error = shift || 1;
 
-	$self->set($key, { type => $type, value => $list });
+	$self->set($key, { type => $type, value => $list }, $check_error);
 }
 
 sub set_pair
@@ -92,12 +95,13 @@ sub set_pair
 	my $key  = shift;
 	my $car  = shift;
 	my $cdr  = shift;
+	my $check_error = shift || 1;
 
 	$self->set($key, {
 			type	=> 'pair',
 			car		=> $car,
 			cdr		=> $cdr,
-		});
+		}, $check_error);
 }
 
 package Gnome2::GConf;
@@ -122,12 +126,12 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
   my $notify_id = $client->notify_add($app_key, sub {
   		my ($client, $cnxn_id, $entry) = @_;
 		return unless $entry->{value};
-
+		
 		if ($entry->{value}->{type} eq 'string')
 		{
 			printf "key '%s' changed to '%s'\n",
 					$entry->{key},
-					$entry->{value}->{data};
+					$entry->{value}->{value};
 		}
 	});
   
@@ -135,6 +139,8 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
   $string = 'some string' unless $string;
   
   $client->set($app_key, { type => 'string', data => $string });
+  
+  # set a schema for the key
   $client->set_schema ($app_key, {
   		type => 'string',
 		locale => 'C',
@@ -142,7 +148,8 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
 		long_desc => 'This key does something.',
 		owner => 'some_program'
 	});
-
+  
+  # remove the notification callback
   $client->notify_remove($notify_id);
 
 =head1 ABSTRACT
@@ -250,37 +257,6 @@ C<GConfChangeSet>.
 
 =back
 
-=head1 ERROR HANDLING
-
-In C, GConf offers a complex and flexible error handling system.  Each fallible
-function has a GError parameter: if you want to retrieve the error message in
-case of failure, you could pass a pointer to an empty GError structure, and
-then use it; on error, though, the default error handler will be invoked.  If
-you don't want to know what happened, and let the default error handler deal
-with the failure, you might pass a NULL value.  In case of failure, the "error"
-signal is emitted; you might want to attach a callback to that signal and
-control signal propagation.  Also, if you pass a NULL value instead of a GError
-structure, the "unreturned_error" is emitted, thus allowing a finer grained
-error control; e.g.: just pass a GError to every function you want the default
-error handler to check on failure, and pass a NULL value to the functions you
-want to check using the "unreturned_error" signal.
-
-In perl, you don't have all these options, mainly because there's no GError
-type.  By default, every fallible method will croak on failure, which is The
-Right Thing To Do(R) when debugging; also, the "error" signal is emitted, so
-you might connect a callback to it.  If you want to catch the error, you will
-have to use C<eval> and Glib::Error:
-	
-	use Glib;
-	eval {
-		$s = $client->get_string($some_key);
-		1;
-	};
-	if (Glib::Error::matches($@, 'Gnome2::GConf::Error', 'bad-key'))
-	{
-		# recover from a bad-key error.
-	}
-
 =head1 SEE ALSO
 
 L<perl>(1), L<Glib>(3pm).
@@ -293,7 +269,7 @@ gtk2-perl created by the gtk2-perl team: http://gtk2-perl.sf.net
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Emmanuele Bassi
+Copyright 2003-2005 by Emmanuele Bassi
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
