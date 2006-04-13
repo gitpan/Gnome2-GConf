@@ -103,13 +103,14 @@ SV *
 newSVGConfValue (GConfValue * v)
 {
 	HV * h;
-	SV * r;
+	SV * sv;
+	HV * stash;
 	
 	if (! v)
 		return newSVsv(&PL_sv_undef);
 
 	h = newHV ();
-	r = newRV_noinc ((SV *) h);	/* safe */
+	sv = newRV_noinc ((SV *) h);	/* safe */
 	
 	switch (v->type) {
 		case GCONF_VALUE_STRING:
@@ -173,8 +174,11 @@ newSVGConfValue (GConfValue * v)
 		default:
 			croak ("newSVGConfValue: invalid type found");
 	}
+
+	stash = gv_stashpv ("Gnome2::GConf::Value", TRUE);
+	sv_bless (sv, stash);
 	
-	return r;
+	return sv;
 }
 
 /* Create a GConfValue from a SV. */
@@ -348,3 +352,24 @@ L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Entry>(3pm), L<Gnome2::GConf::Schema>(3p
 L<Gnome2::GConf::ChangeSet>(3pm).
 
 =cut
+
+#if GCONF_CHECK_VERSION (2, 13, 1)
+
+gint
+compare (value_a, value_b)
+	GConfValue * value_a
+	GConfValue * value_b
+    CODE:
+    	RETVAL = gconf_value_compare (value_a, value_b);
+    OUTPUT:
+    	RETVAL
+
+#endif /* GCONF_CHECK_VERSION (2, 13, 1) */
+	
+gchar_own *
+to_string (value)
+	GConfValue * value
+    CODE:
+    	RETVAL = gconf_value_to_string (value);
+    OUTPUT:
+    	RETVAL

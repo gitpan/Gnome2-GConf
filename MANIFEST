@@ -20,7 +20,6 @@ NEWS
 perl-Gnome2-GConf.spec.in
 README
 t/00.GConf.t
-TODO
 xs/GConf2.xs
 xs/GConfChangeSet.xs
 xs/GConfClient.xs

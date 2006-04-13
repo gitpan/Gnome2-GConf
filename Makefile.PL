@@ -1,5 +1,5 @@
 #
-# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.17 2005/09/05 20:32:35 ebassi Exp $
+# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.18 2006/04/13 07:49:34 ebassi Exp $
 #
 
 use 5.008;
@@ -13,8 +13,8 @@ use ExtUtils::MakeMaker;
 our %build_reqs = (
 	'perl-ExtUtils-Depends'   => '0.2',
 	'perl-ExtUtils-PkgConfig' => '1.03',
-	'perl-Glib'               => '1.100', # for Glib::MakeHelper
-	'perl-Gtk2'               => '1.100', # for Gtk2::CodeGen
+	'perl-Glib'               => '1.120', # for Glib::MakeHelper
+	'perl-Gtk2'               => '1.120', # for Gtk2::CodeGen
 	'GConf'                   => '2.0.0',
 );
 
@@ -49,10 +49,10 @@ our %pkgcfg = ExtUtils::PkgConfig->find ('gconf-2.0 >= '.$build_reqs{GConf});
 
 our @xs_files = <xs/*.xs>;
 our %pm_files = (
-    'GConf.pm'		=> '$(INST_LIBDIR)/GConf.pm',
+    'GConf.pm' => '$(INST_LIBDIR)/GConf.pm',
 );
 our %pod_files = (
-    'GConf.pm'		=> '$(INST_MAN3DIR)/Gnome2::GConf.$(MAN3EXT)',
+    'GConf.pm' => '$(INST_MAN3DIR)/Gnome2::GConf.$(MAN3EXT)',
     Glib::MakeHelper->do_pod_files (@xs_files),
 );
 
@@ -98,7 +98,7 @@ WriteMakefile(
 #This is an unstable development release of Gnome2::GConf.  The API is
 #not frozen and things are subject to change at any time.  Report any
 #bugs to gtk-perl-list AT gnome DOT org as soon as possible.
-#Please use the stable 1.000 version for important work.
+#Please use the stable 1.020 version for important work.
 #
 #WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 #

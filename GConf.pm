@@ -45,13 +45,25 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '1.021';
+our $VERSION = '1.030';
 
 sub dl_load_flags { 0x01 }
 
 require XSLoader;
 XSLoader::load('Gnome2::GConf', $VERSION);
 
+
+# Preloaded methods go here
+
+package Gnome2::GConf::Value;
+
+use overload
+	'==' => sub { Gnome2::GConf::Value::compare($_[0],$_[1]) },
+	fallback => 1;
+
+use overload
+	'""' => sub { Gnome2::GConf::Value::to_string($_[0]) },
+	fallback => 1;
 
 package Gnome2::GConf::Client;
 use Carp;
@@ -159,11 +171,12 @@ libraries, for use with gtk2-perl.
 
 =head1 DESCRIPTION
 
-This module allows you to use the GConf configuration system in order to
-store/retrieve the configuration of an application.  The GConf system is a
-powerful configuration manager based on a user daemon that handles a set of
-key and value pairs, and notifies any changes of the value to every program
-that monitors those keys.  GConf is used by GNOME 2.x.
+This module allows you to use the GConf configuration system in order
+to store/retrieve the configuration of an application.  The GConf
+system is a powerful configuration manager based on a user daemon that
+handles a set of key and value pairs, and notifies any changes of the
+value to every program that monitors those keys.  GConf is used
+by GNOME 2.x.
 
 To discuss gtk2-perl, ask questions and flame/praise the authors,
 join gtk-perl-list@gnome.org at lists.gnome.org.
@@ -174,9 +187,10 @@ Find out more about Gnome at http://www.gnome.org.
 
 Some opaque data types in GConf are not registered inside the Glib type
 system.  Thus, they have been implemented in a more perlish way, when
-possible, for the sake of coherency and following the principle of least
-surprise for the perl developer.  These changes tried to preserve semantics,
-to add syntactic sugar and to remove the need for accessor methods.
+possible, for the sake of coherency and following the principle of
+least surprise for the perl developer.  These changes try to preserve
+semantics, to add syntactic sugar and to remove the need for accessor
+methods.
 
 =over
 
@@ -214,8 +228,9 @@ following signature:
 	                          guint cnxn_id,
 	                          GConfEntry * entry);
 
-Where C<GConfEntry> is a container for the key/value pair.  Since in perl
-there's no C<GConfEntry> (see above), the C<entry> parameter is an hashref.
+Where C<GConfEntry> is a container for the key/value pair.  Since in
+perl there's no C<GConfEntry> (see above), the C<entry> parameter is
+an hashref.
 
 =item GConfClient::get
 
@@ -228,31 +243,33 @@ return/use an hashref.  See L<Gnome2::GConf::Value>
 
 =item GConfClient::set_list
 
-These accessor methods use a string for setting the type of the lists (lists
-may have values of only B<one> type), and an arrayref containing the values.
+These accessor methods use a string for setting the type of the lists
+(lists may have values of only B<one> type), and an arrayref containing
+the values.
 
 =item GConfClient::get_pair
 
 =item GConfClient::set_pair
 
-These accessor methods use two hashref (representing C<GConfValue>s) for
-the C<car> and the C<cdr> parameters.
+These accessor methods use two hashref (representing C<GConfValue>s)
+for the C<car> and the C<cdr> parameters.
 
 =item GConfClient::get_schema
 
 =item GConfClient::set_schema
 
-Similarly to the get/set pair above, these two methods return/use an hashref.
-See L<Gnome2::GConf::Schema>.
+Similarly to the get/set pair above, these two methods return/use an
+hashref. See L<Gnome2::GConf::Schema>.
 
 =item GConfClient::commit_change_set
 
-In C, this method return a boolean value (TRUE on success, FALSE on failure).
-On user request (using the boolean parameter C<remove_committed>), it also
-returns the C<GConfChangeSet>, pruned of the successfully committed keys.  In
-perl, this method returns a boolean value both in scalar context or if the user
-sets to FALSE the C<remove_committed> parameter; in array context or if the user
-requests the uncommitted keys, returns both the return value and the pruned
+In C, this method return a boolean value (TRUE on success, FALSE on
+failure). On user request (using the boolean parameter
+C<remove_committed>), it also returns the C<GConfChangeSet>, pruned of
+the successfully committed keys.  In perl, this method returns a
+boolean value both in scalar context or if the user sets to FALSE the
+C<remove_committed> parameter; in array context or if the user requests
+the uncommitted keys, returns both the return value and the pruned
 C<GConfChangeSet>.
 
 =back
@@ -263,13 +280,13 @@ L<perl>(1), L<Glib>(3pm).
 
 =head1 AUTHOR
 
-Emmanuele Bassi E<lt>emmanuele.bassi@iol.itE<gt>
+Emmanuele Bassi E<lt>ebassi@gmail.comE<gt>
 
 gtk2-perl created by the gtk2-perl team: http://gtk2-perl.sf.net
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003-2005 by Emmanuele Bassi
+Copyright 2003-2006 by Emmanuele Bassi
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public

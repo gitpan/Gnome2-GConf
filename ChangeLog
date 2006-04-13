@@ -1,3 +1,90 @@
+2006-04-13  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* Makefile.PL: Require the new stable releases for Glib and Gtk2.
+	* README: ditto.
+	* GConf.pm: Bump to 1.030.
+
+2006-04-13  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* xs/GConfEngine.xs (gconf_engine_get_for_addresses): Fix
+	the wrapper making it return RETVAL (Laurent Simonneau,
+	#338311)
+
+2006-01-19 23:17 (+0100) ebassi
+
+	* xs/GConfEntry.xs: add the "schema_name" key to the apidoc.
+
+	* copyright.pod: update copyright notice.
+
+2006-01-19 23:13 (+0100) ebassi
+
+	* gconfperl.h: I should double check my commits.
+
+2006-01-18 17:59 (+0100) ebassi
+
+	* xs/GConfEntry.xs: fix coding style and add the "schema_name" hash
+	key for binding the gconf_entry_get_schema_name function; also,
+	add the "is_default", "is_writable" and "schema_name" keys recognition
+	to the SvGConfEntry constructor.
+
+	* examples/basic-gconf-app.pl: fix some coding style and whitespace
+	issues.
+
+2006-01-18 17:50 (+0100) ebassi
+
+	* xs/GConfEntry.xs: the names of the functions are:
+
+		gconf_entry_get_is_default
+		gconf_entry_get_is_writable
+	
+	you dolt!
+
+2006-01-18 17:44 (+0100) ebassi
+	
+	* xs/GConfEngine.xs: fix apidoc; make our type registration function
+	for GConfEngine really unused if ever the GConf people decide to
+	register the type themselves.
+
+	* ChangeLog: fix version number.
+
+2006-01-18 15:35 (+0100) ebassi
+
+	* GConf.pm: post release bump to 1.022.
+
+	* xs/GConfEntry: add the "is_writable" and "is_default" keys to
+	the Gnome2::GConf::Entry object, to wrap the gconf_entry_is_default
+	and gconf_entry_is_writable C functions.
+
+2005-12-27 23:30 (+0100) ebassi
+
+	* GConf.pm: update my email address.
+
+2005-12-27 23:23 (+0100) ebassi
+
+	* examples/basic-gconf-app.pl: remove our TRUE/FALSE constants and
+	use Glib ones instead; use the compact init for Gtk2; show the new
+	overloaded stringification thingie.
+
+	* GConf.pm: overload the == and "" operatores using
+	Gnome2::GConf::Value::compare and Gnome2::GConf::Value::to_string.
+
+	* xs/GConfValue.xs: implement to_string and compare class methods;
+	bless the hash representing a GConfValue as Gnome2::GConf::Value.
+
+	* xs/GConfEntry.xs: bless the hash representing a GConfEntry as
+	Gnome2::GConf::Entry.
+
+2005-12-27 22:12 (+0100) ebassi
+
+	D TODO
+
+	* README, GConf.pm: post release version bump.
+
+	* TODO: remove the TODO file, since every item has been
+	implemented (yay!).
+
+=== Gnome2::GConf 1.021 ===
+
 2005-12-26 22:09 (+0100) ebassi
 
 	* AUTHOR: change email address

@@ -19,7 +19,7 @@
 
 #include "gconfperl.h"
 
-#ifdef GCONF_TYPE_ENGINE
+#ifdef GCONFPERL_TYPE_ENGINE
 GType
 gconfperl_gconf_engine_get_type (void)
 {
@@ -31,7 +31,7 @@ gconfperl_gconf_engine_get_type (void)
 	}
 	return t;
 }
-#endif
+#endif /* GCONFPERL_TYPE_ENGINE */
 
 static GPerlCallback *
 gconfperl_engine_notify_func_create (SV * func, SV * data)
@@ -136,6 +136,8 @@ gconf_engine_get_for_addresses (class, ...)
 	g_slist_free (addresses); /* the contents are handled by Perl */	
 	if (err)
 		gperl_croak_gerror (NULL, err);
+    OUTPUT:
+        RETVAL
 
 #endif /* GCONF_CHECK_VERSION (2, 7, 1) */
 		
@@ -152,7 +154,12 @@ gconf_engine_get_for_addresses (class, ...)
 #/* Low-level interfaces */
 
 =for apidoc
-Fetch the Gnome2::GConf::Value bound to the given key.
+
+Fetch and return the Gnome2::GConf::Value bound to the given $key.
+
+This overrides Glib::Object's C<get>, so you'll want to use
+C<< $object->get_property >> to get object's properties.
+
 =cut
 GConfValue *
 gconf_engine_get (engine, key)
@@ -183,10 +190,15 @@ gconf_engine_get_without_default (engine, key)
 		gperl_croak_gerror (NULL, err);
 
 =for apidoc
-Fetch the Gnome2::GConf::Value bound to the given key, for a specific locale.
+
+Fetch and return the Gnome2::GConf::Value bound to the given $key, for a
+specific $locale.
+
 Locale only matters if you are expecting to get a schema, or if you don't know
-what you are expecting and it might be a schema. Note that Gnome2::GConf::Engine::get
-automatically uses the current locale, which is normally what you want.
+what you are expecting and it might be a schema. Note that 
+Gnome2::GConf::Engine::get automatically uses the current locale, which is
+normally what you want.
+
 =cut
 GConfValue *
 gconf_engine_get_with_locale (engine, key, locale)
@@ -201,7 +213,9 @@ gconf_engine_get_with_locale (engine, key, locale)
 		gperl_croak_gerror (NULL, err);
 
 =for apidoc
+
 Set the Gnome2::GConf::Value bound to the given key.
+
 =cut
 gboolean
 gconf_engine_set (engine, key, value)
@@ -219,7 +233,9 @@ gconf_engine_set (engine, key, value)
     	RETVAL
 
 =for apidoc
+
 Unset the given key.
+
 =cut
 gboolean
 gconf_engine_unset (engine, key)

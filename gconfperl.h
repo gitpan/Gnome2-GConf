@@ -36,12 +36,13 @@
 #ifndef GCONFPERL_TYPE_GCONF_ERROR
 # define GCONFPERL_TYPE_GCONF_ERROR (gconfperl_gconf_error_get_type ())
 GType gconfperl_gconf_error_get_type (void) G_GNUC_CONST;
-#endif
+#endif /* !GCONFPERL_TYPE_ENGINE */
 
 #ifndef GCONF_TYPE_ENGINE
 # define GCONF_TYPE_ENGINE (gconfperl_gconf_engine_get_type ())
+# define GCONFPERL_TYPE_ENGINE 1
 GType gconfperl_gconf_engine_get_type (void) G_GNUC_CONST;
-#endif
+#endif /* !GCONF_TYPE_ENGINE */
 
 /* forward declaration for opaque containers converters */
 SV * newSVGConfEntry (GConfEntry *);
@@ -58,4 +59,3 @@ GConfChangeSet * SvGConfChangeSet (SV *);
 # include "gconfperl-version.h"
 
 #endif /* _GNOME_GCONF_PERL_H_ */
-
