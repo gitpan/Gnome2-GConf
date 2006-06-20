@@ -12,7 +12,6 @@ BuildRequires: GConf2-devel >= @GCONF@
 BuildRequires: perl-ExtUtils-Depends >= @PERL_EXTUTILS_DEPENDS@
 BuildRequires: perl-ExtUtils-PkgConfig >= @PERL_EXTUTILS_PKGCONFIG@
 BuildRequires: perl-Glib >= @PERL_GLIB@
-BuildRequires: perl-Gtk2 >= @PERL_GTK@
 Requires: GConf2 >= %(pkg-config --modversion gconf-2.0)
 Requires: perl-Glib >= @PERL_GLIB@
 Requires: %(perl -MConfig -le 'if (defined $Config{useithreads}) { print "perl(:WITH_ITHREADS)" } else { print "perl(:WITHOUT_ITHREADS)" }')

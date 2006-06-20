@@ -1,3 +1,12 @@
+2006-06-20  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* README:
+	* perl-Gnome2-GConf.spec.in:
+	* Makefile.PL: Drop Gtk2 and just require Glib, now that
+	we have Glib::CodeGen (Laurent Simonneau, #338313)
+
+	* GConf.pm: bump to 1.30.
+
 2006-04-13  Emmanuele Bassi  <ebassi@gmail.com>
 
 	* Makefile.PL: Require the new stable releases for Glib and Gtk2.

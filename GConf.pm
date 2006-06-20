@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2003-2005 by Emmanuele Bassi (see the file AUTHORS)
+# Copyright (c) 2003-2006 by Emmanuele Bassi (see the file AUTHORS)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '1.030';
+our $VERSION = '1.031';
 
 sub dl_load_flags { 0x01 }
 
@@ -58,7 +58,7 @@ XSLoader::load('Gnome2::GConf', $VERSION);
 package Gnome2::GConf::Value;
 
 use overload
-	'==' => sub { Gnome2::GConf::Value::compare($_[0],$_[1]) },
+	'==' => sub { Gnome2::GConf::Value::compare($_[0], $_[1]) },
 	fallback => 1;
 
 use overload
@@ -136,16 +136,15 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
   
   # add a notify for the key
   my $notify_id = $client->notify_add($app_key, sub {
-  		my ($client, $cnxn_id, $entry) = @_;
-		return unless $entry->{value};
+      my ($client, $cnxn_id, $entry) = @_;
+      return unless $entry->{value};
 		
-		if ($entry->{value}->{type} eq 'string')
-		{
-			printf "key '%s' changed to '%s'\n",
-					$entry->{key},
-					$entry->{value}->{value};
-		}
-	});
+      if ($entry->{value}->{type} eq 'string') {
+        printf "key '%s' changed to '%s'\n",
+	       $entry->{key},
+	       $entry->{value}->{value};
+      }
+    });
   
   my $string = $client->get_string($app_key);
   $string = 'some string' unless $string;
@@ -153,13 +152,14 @@ Gnome2::GConf - Perl wrappers for the GConf configuration engine.
   $client->set($app_key, { type => 'string', data => $string });
   
   # set a schema for the key
-  $client->set_schema ($app_key, {
-  		type => 'string',
-		locale => 'C',
-		short_desc => 'Some key.',
-		long_desc => 'This key does something.',
-		owner => 'some_program'
-	});
+  $client->set_schema ($app_key,
+      {
+        type => 'string',
+	locale => 'C',
+	short_desc => 'Some key.',
+	long_desc => 'This key does something.',
+	owner => 'some_program'
+      });
   
   # remove the notification callback
   $client->notify_remove($notify_id);

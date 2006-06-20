@@ -14,7 +14,6 @@ our %build_reqs = (
 	'perl-ExtUtils-Depends'   => '0.2',
 	'perl-ExtUtils-PkgConfig' => '1.03',
 	'perl-Glib'               => '1.120', # for Glib::MakeHelper
-	'perl-Gtk2'               => '1.120', # for Gtk2::CodeGen
 	'GConf'                   => '2.0.0',
 );
 
@@ -22,11 +21,10 @@ our %build_reqs = (
 # dependencies and install them.
 unless (eval "use ExtUtils::Depends '$build_reqs{'perl-ExtUtils-Depends'}';"
            . "use ExtUtils::PkgConfig '$build_reqs{'perl-ExtUtils-PkgConfig'}';"
-	   . "use Gtk2::CodeGen;"
+	   . "use Glib::CodeGen;"
            # just seeing if Glib is available isn't enough, make sure
            # it's recent enough, too 
            . "use Glib '$build_reqs{'perl-Glib'}';"
-           . "use Gtk2 '$build_reqs{'perl-Gtk2'}';"
            . "use Glib::MakeHelper;"
            . "1") {
    warn "$@\n";
@@ -34,7 +32,6 @@ unless (eval "use ExtUtils::Depends '$build_reqs{'perl-ExtUtils-Depends'}';"
          PREREQ_FATAL => 1,
          PREREQ_PM    => {
             'Glib'                => $build_reqs{'perl-Glib'},
-            'Gtk2'                => $build_reqs{'perl-Gtk2'},
             'ExtUtils::Depends'   => $build_reqs{'perl-ExtUtils-Depends'},
             'ExtUtils::PkgConfig' => $build_reqs{'perl-ExtUtils-PkgConfig'},
          },
@@ -120,6 +117,5 @@ sub MY::postamble
 		'PERL_EXTUTILS_PKGCONFIG' => 
 			$build_reqs{'perl-ExtUtils-PkgConfig'},
 		'PERL_GLIB' => $build_reqs{'perl-Glib'},
-		'PERL_GTK' => $build_reqs{'perl-Gtk2'},
 	       );
 }
