@@ -1,5 +1,5 @@
 #
-# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.18 2006/04/13 07:49:34 ebassi Exp $
+# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.19 2006/06/20 09:15:09 ebassi Exp $
 #
 
 use 5.008;

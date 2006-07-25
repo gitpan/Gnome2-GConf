@@ -1,3 +1,8 @@
+Overview of changes since 1.031
+===============================
+
+* Fix loaded flags on Darwin. [Daniel Macks]
+
 Overview of changes since 1.020
 ===============================
 

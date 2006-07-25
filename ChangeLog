@@ -1,3 +1,12 @@
+2006-07-25  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* GConf.pm: Update the dl_load_flags() sub to work on
+	Darwin (reported by Daniel Macks).
+
+2006-06-20  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* GConf.pm: Post-release bump to 1.032
+
 2006-06-20  Emmanuele Bassi  <ebassi@gmail.com>
 
 	* README:
@@ -5,7 +14,7 @@
 	* Makefile.PL: Drop Gtk2 and just require Glib, now that
 	we have Glib::CodeGen (Laurent Simonneau, #338313)
 
-	* GConf.pm: bump to 1.30.
+	* GConf.pm: bump to 1.031.
 
 2006-04-13  Emmanuele Bassi  <ebassi@gmail.com>
 
