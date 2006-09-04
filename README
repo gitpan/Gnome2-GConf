@@ -1,4 +1,4 @@
-Gnome2::GConf version 1.032
+Gnome2::GConf version 1.040
 ===========================
 
 This module allows you to use the GConf configuration system in order to
