@@ -210,3 +210,12 @@ locale is needed for translations purposes).
 L<Gnome2::GConf>(3pm), L<Gnome2::GConf::Value>(3pm).
 
 =cut
+## we need an explicit DESTROY because GConfSchema objects are
+## dynamically allocated and thus must be freed by us.
+
+void
+DESTROY (schema)
+        SV * schema
+    CODE:
+        gconf_schema_free (SvGConfSchema (schema));
+

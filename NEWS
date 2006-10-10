@@ -1,3 +1,12 @@
+Overview of changes since 1.042
+===============================
+
+* Treat Gnome2::GConf::Schema objects as fundamental types
+  in Gnome2::GConf::Value.
+* Fix usage of Gnome2::GConf::Client getters for keys of type
+  'schema' (#361103, Laurent Simonneau)
+* Fix a leak inside Gnome2::GConf::Schema.
+
 Overview of changes since 1.041
 ===============================
 

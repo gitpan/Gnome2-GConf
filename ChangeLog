@@ -1,5 +1,23 @@
 2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
 
+	* README:
+	* NEWS: Release 1.043
+
+2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* xs/GConfValue.xs: Treat GConfSchema objects like fundamental
+	types; this should fix the croak() emitted when getting a
+	value of type 'schema'. (#361103, Laurent Simonneau)
+
+	* xs/GConfSchema.xs: Provide an explicit DESTROY for GConfSchema
+	objects, otherwise we'll leak them all over the floor.
+
+2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* GConf.pm: Post-bump release to 1.043
+
+2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
+
 	* GConf.pm:
 	* README:
 	* NEWS: Release 1.042

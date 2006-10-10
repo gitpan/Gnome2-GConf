@@ -50,16 +50,24 @@ gconfperl_sv_from_value (GConfValue * v)
 	
 	switch (v->type) {
 		case GCONF_VALUE_BOOL:
-			sv = newSViv (gconf_value_get_bool (v));      break;
+			sv = newSViv (gconf_value_get_bool (v));
+                        break;
 		case GCONF_VALUE_FLOAT:
-			sv = newSVnv (gconf_value_get_float (v));     break;
+			sv = newSVnv (gconf_value_get_float (v));
+                        break;
 		case GCONF_VALUE_INT:
-			sv = newSViv (gconf_value_get_int (v));       break;
+			sv = newSViv (gconf_value_get_int (v));
+                        break;
 		case GCONF_VALUE_STRING:
-			sv = newSVGChar (gconf_value_get_string (v)); break;
+			sv = newSVGChar (gconf_value_get_string (v));
+                        break;
+		case GCONF_VALUE_SCHEMA:
+                        sv = newSVGConfSchema (gconf_value_get_schema (v));
+                        break;
 		case GCONF_VALUE_INVALID:
 		default:
 			sv = NULL;
+                        break;
 	}
 	
 	return sv;
@@ -70,13 +78,20 @@ gconfperl_value_from_sv (SV * sv, GConfValue * v)
 {
 	switch (v->type) {
 		case GCONF_VALUE_BOOL:
-			gconf_value_set_bool (v, SvIV (sv));      break;
+			gconf_value_set_bool (v, SvIV (sv));
+                        break;
 		case GCONF_VALUE_FLOAT:
-			gconf_value_set_float (v, SvNV (sv));     break;
+			gconf_value_set_float (v, SvNV (sv));
+                        break;
 		case GCONF_VALUE_INT:
-			gconf_value_set_int (v, SvIV (sv));       break;
+			gconf_value_set_int (v, SvIV (sv));
+                        break;
 		case GCONF_VALUE_STRING:
-			gconf_value_set_string (v, SvGChar (sv)); break;
+			gconf_value_set_string (v, SvGChar (sv));
+                        break;
+                case GCONF_VALUE_SCHEMA:
+                        gconf_value_set_schema (v, SvGConfSchema (sv));
+                        break;
 		case GCONF_VALUE_INVALID:
 		default:
 			break;
@@ -87,7 +102,7 @@ gconfperl_value_from_sv (SV * sv, GConfValue * v)
  * Create a SV from a GConfValue.
  * The hash has this form:
  * 
- * fundamentals = { 'int' | 'bool' | 'float' | 'string' }
+ * fundamentals = { 'int' | 'bool' | 'float' | 'string' | 'schema' }
  * 
  * iff <type> := <fundamentals>
  * 	{ type => <type>, value => { <scalar> | <arrayref> } }
@@ -98,6 +113,9 @@ gconfperl_value_from_sv (SV * sv, GConfValue * v)
  * 		car  => { type => <fundamentals>, value => <scalar> },
  * 		cdr  => { type => <fundamentals>, value => <scalar> }
  * 	}
+ * 
+ * a schema is a fundamental type because we have a type for it, like
+ * we do have types for integer, boolean, floating and string values.
  */ 
 SV *
 newSVGConfValue (GConfValue * v)
@@ -117,12 +135,12 @@ newSVGConfValue (GConfValue * v)
 		case GCONF_VALUE_INT:
 		case GCONF_VALUE_FLOAT:
 		case GCONF_VALUE_BOOL:
+                case GCONF_VALUE_SCHEMA:
 			/* these are fundamental types, so store type and value
 			 * directly inside the hashref; for the type, use the
 			 * 'stringyfied' version.
 			 */
-			hv_store (h, "type", 4,
-				gperl_convert_back_enum (GCONF_TYPE_VALUE_TYPE, v->type), 0);
+			hv_store (h, "type", 4, gperl_convert_back_enum (GCONF_TYPE_VALUE_TYPE, v->type), 0);
 			hv_store (h, "value", 5, gconfperl_sv_from_value (v), 0);
 			break;
 		case GCONF_VALUE_PAIR:
@@ -164,8 +182,7 @@ newSVGConfValue (GConfValue * v)
 			for (tmp = l; tmp != NULL; tmp = tmp->next)
 				av_push (a, gconfperl_sv_from_value ((GConfValue *) tmp->data));
 			
-			hv_store (h, "type", 4,
-				  gperl_convert_back_enum (GCONF_TYPE_VALUE_TYPE, t), 0);
+			hv_store (h, "type", 4, gperl_convert_back_enum (GCONF_TYPE_VALUE_TYPE, t), 0);
 			hv_store (h, "value", 5, newSVsv (r), 0);
 			}
 			break;
@@ -173,6 +190,7 @@ newSVGConfValue (GConfValue * v)
 			/* this is used only for error handling */
 		default:
 			croak ("newSVGConfValue: invalid type found");
+                        break;
 	}
 
 	stash = gv_stashpv ("Gnome2::GConf::Value", TRUE);
@@ -215,6 +233,7 @@ SvGConfValue (SV * data)
 		case GCONF_VALUE_INT:
 		case GCONF_VALUE_FLOAT:
 		case GCONF_VALUE_BOOL:
+                case GCONF_VALUE_SCHEMA:
 			if (! ((s = hv_fetch (h, "value", 5, 0)) && SvOK (*s)))
 				croak ("SvGConfValue: fundamental types require a value key");
 			
