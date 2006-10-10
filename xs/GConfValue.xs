@@ -353,6 +353,16 @@ L<Gnome2::GConf::ChangeSet>(3pm).
 
 =cut
 
+##/* we need to provide a real DESTROY function because GConfValue
+## * objects are dynamically allocated
+## */
+
+void
+DESTROY (value)
+        SV * value
+    CODE:
+        gconf_value_free (SvGConfValue (value));        
+
 #if GCONF_CHECK_VERSION (2, 13, 1)
 
 gint

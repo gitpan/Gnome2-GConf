@@ -381,7 +381,7 @@ gconf_client_get_default_from_schema (client, key, check_error=TRUE)
 
 ##gboolean gconf_client_unset (GConfClient* client, const gchar* key, GError** err);
 gboolean
-gconf_client_unset (client, key, check_error=FALSE)
+gconf_client_unset (client, key, check_error=TRUE)
 	GConfClient * client
 	const gchar * key
 	gboolean check_error
@@ -398,6 +398,30 @@ gconf_client_unset (client, key, check_error=FALSE)
 	}
     OUTPUT:
      	RETVAL
+
+#if GCONF_CHECK_VERSION (2, 3, 3)
+
+gboolean
+gconf_client_recursive_unset (client, key, flags=0, check_error=TRUE)
+        GConfClient * client
+        const gchar * key
+        GConfUnsetFlags flags
+        gboolean check_error
+    PREINIT:
+        GError * err = NULL;
+    CODE:
+        if (TRUE == check_error) {
+                RETVAL = gconf_client_recursive_unset (client, key, flags, &err);
+                if (err)
+                        gperl_croak_gerror (NULL, err);
+        }
+        else {
+                RETVAL = gconf_client_recursive_unset (client, key, flags, NULL);
+        }
+    OUTPUT:
+        RETVAL
+
+#endif /* GCONF_CHECK_VERSION (2, 3, 3) */
 
 ##GSList* gconf_client_all_entries (GConfClient *client, const gchar *dir, GError **err);
 =for apidoc

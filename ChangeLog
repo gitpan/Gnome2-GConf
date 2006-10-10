@@ -1,3 +1,29 @@
+2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* GConf.pm:
+	* README:
+	* NEWS: Release 1.042
+
+	* xs/GConfClient.xs: Implement gconf_client_recursive_unset(),
+	which appeared in GConf >= 2.3.3. (#361094, based on a patch
+	by Laurent Simonneau)
+	
+	(gconf_client_unset): reverse the check_error default argument.
+
+2006-09-29  Emmanuele Bassi  <ebassi@gmail.com>
+	
+	* README:
+	* NEWS: Release 1.041.
+
+2006-09-29  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* GConf.pm: Bump to 1.041.
+
+	* xs/GConfValue.xs: Add a DESTROY function for removing
+	the GConfValue structure, as it's not a GType, so we don't
+	have all the convenient memory handling provided by the
+	gperl bindings. (#358294, Santeri Paavolainen)
+
 2006-09-04  Emmanuele Bassi  <ebassi@gmail.com>
 
 	* README:

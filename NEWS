@@ -1,3 +1,15 @@
+Overview of changes since 1.041
+===============================
+
+* Implement GConf::Client::recursive_unset() to recursively
+  unset a directory in the database. (#361094, based on a patch
+  by Laurent Simonneau)
+
+Overview of changes since 1.040
+===============================
+
+* Fix a leak in GConfValue. (#358294, Santeri Paavolainen)
+
 Overview of changes since 1.031
 ===============================
 
