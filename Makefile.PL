@@ -1,5 +1,5 @@
 #
-# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.19 2006/06/20 09:15:09 ebassi Exp $
+# $Header: /cvsroot/gtk2-perl/gtk2-perl-xs/Gnome2-GConf/Makefile.PL,v 1.20 2007/09/29 13:09:26 kaffeetisch Exp $
 #
 
 use 5.008;
@@ -76,7 +76,8 @@ $gconf->add_typemaps (map { File::Spec->catfile($cwd, $_) }
                       'build/gconfperl.typemap', 'gconf.typemap');
 $gconf->install (qw(gconfperl.h
 		build/gconfperl-autogen.h
-		build/gconfperl-version.h));
+		build/gconfperl-version.h
+		doctypes));
 $gconf->save_config ('build/IFiles.pm');
 
 WriteMakefile(

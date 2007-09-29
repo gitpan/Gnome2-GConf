@@ -1,3 +1,22 @@
+2007-09-29  Torsten Schoenfeld  <tsch@cpan.org>
+
+	* README:
+	* NEWS: Release 1.044.
+
+2007-09-29  Torsten Schoenfeld  <tsch@cpan.org>
+
+	* GConf.pm: Use DynaLoader instead of XSLoader for bootstrapping
+	to make sure our symbols are exported properly.  Also remove the
+	unused Exporter stuff.
+
+	* Makefile.PL: Install our doctypes file so other bindings get to
+	use it as well.
+
+2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
+
+	* AUTHORS: Update
+	* GConf.pm: Post release bump to 1.044
+
 2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
 
 	* README:
@@ -14,7 +33,7 @@
 
 2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
 
-	* GConf.pm: Post-bump release to 1.043
+	* GConf.pm: Post release bump to 1.043
 
 2006-10-10  Emmanuele Bassi  <ebassi@gmail.com>
 

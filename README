@@ -1,4 +1,4 @@
-Gnome2::GConf version 1.043
+Gnome2::GConf version 1.044
 ===========================
 
 This module allows you to use the GConf configuration system in order to
@@ -36,7 +36,7 @@ ways:
 
   in the code of your perl script:
     use lib '/some/other/place/lib/perl5/site_perl';
-  
+
 
 DEPENDENCIES
 

@@ -24,33 +24,15 @@ use warnings;
 
 use Glib;
 
-require Exporter;
+require DynaLoader;
 
-our @ISA = qw(Exporter);
+our @ISA = qw(DynaLoader);
 
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use Gnome2::GConf ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(
-	
-) ] );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = qw(
-	
-);
-
-our $VERSION = '1.043';
+our $VERSION = '1.044';
 
 sub dl_load_flags { $^O eq 'darwin' ? 0x00 : 0x01 }
 
-require XSLoader;
-XSLoader::load('Gnome2::GConf', $VERSION);
+Gnome2::GConf->bootstrap ($VERSION);
 
 
 # Preloaded methods go here

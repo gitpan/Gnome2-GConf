@@ -1,3 +1,8 @@
+Overview of changes since 1.043
+===============================
+
+* Make it possible for other bindings to use symbols from Gnome2::GConf's API.
+
 Overview of changes since 1.042
 ===============================
 
